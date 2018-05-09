@@ -3,33 +3,31 @@
 import logging
 import urllib
 import urllib2
-from configparser import ConfigParser
 import json
 import logging
 
-configfile = '/etc/galaxymediatools.cfg'
+import loadconfig as cfg
 
 log = logging.getLogger(__name__)
-config = ConfigParser()
-config.read(configfile)
 
 def pushover(app_key, title='', msg=''):
-    user_key = config.get('pushover', 'user_key')
-    config = {
+    user_key = cfg.config.get('pushover', 'user_key')
+
+    pconfig = {
     'api': 'https://api.pushover.net/1/messages.json',
     'user': user_key,
     'token': app_key
     }
 
     data = urllib.urlencode({
-        'user': config['user'],
-        'token': config['token'],
+        'user': pconfig['user'],
+        'token': pconfig['token'],
         'title': title,
         'message': msg
     })
 
     try:
-        req = urllib2.Request(config['api'], data)
+        req = urllib2.Request(pconfig['api'], data)
 
         response = urllib2.urlopen(req)
     except urllib2.HTTPError:

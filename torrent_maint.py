@@ -107,6 +107,60 @@ def elapsedHours(stop_time, start_time):
     log.debug('Converted times to elapsed hours [{}] and [{}] to {} Hours'.format(start_time,stop_time,total_secs / 60 / 60))
     return((total_secs/60/60)+(diff_time.days*24))
 
+def elapsedTime(start_time, stop_time, lshort=False):
+    diff_time = stop_time - start_time
+    days = diff_time.days
+    if days == 1:
+        daystring = 'Day'
+    else:
+        daystring = 'Days'
+    total_secs = diff_time.seconds
+    seconds = total_secs % 60
+    if seconds == 1:
+        if lshort is False:
+            secstring = 'Second'
+        else:
+            secstring = 'Sec'
+    else:
+        if lshort is False:
+            secstring = 'Seconds'
+        else:
+            secstring = 'Secs'
+    total_min = total_secs / 60
+    minutes = int(total_min % 60)
+    if minutes == 1:
+        if lshort is False:
+            minstring = 'Minute'
+        else:
+            minstring = 'Min'
+    else:
+        if lshort is False:
+            minstring = 'Minutes'
+        else:
+            minstring = 'Mins'
+    hours = int(total_min / 60)
+    if hours == 1:
+        if lshort is False:
+            hourstring = 'Hour'
+        else:
+            hourstring = 'Hr'
+    else:
+        if lshort is False:
+            hourstring = 'Hours'
+        else:
+            hourstring = 'Hrs'
+    if days != 0:
+        return('{} {}, {} {}, {} {}'.format(days, daystring, hours, hourstring, minutes, minstring))
+    elif hours != 0:
+        return('{} {}, {} {}'.format(hours, hourstring, minutes, minstring))
+    elif minutes != 0:
+        return('{} {}, {} {}'.format(minutes, minstring, seconds, secstring))
+    elif minutes == 0:
+        return('{} {}'.format(seconds, secstring))
+    else:
+        log.error('Elapsed time function failed. Could not convert.')
+        return('Error')
+
 
 def datestring2object(datestring):
     if isinstance(datestring, datetime):
@@ -190,7 +244,6 @@ def checkstall_torrents():
         filter_torrents({}, ['name', 'label', 'time_added', 'state', 'progress', 'num_seeds', 'download_payload_rate', 
                              'total_seeds', 'tracker'], checkstall_action, args.quiet)
 
-
 def totals_action(torrent_id, torrent_info):
     global sizetotal
     global counttotal
@@ -217,7 +270,7 @@ def totals_action(torrent_id, torrent_info):
 
 
 def totals_torrents(notify=False):
-    filter_torrents({}, ['name', 'label', 'total_done', 'state', 'download_payload_rate', 'progress'], 
+    filter_torrents({}, ['name', 'label', 'total_done', 'state', 'download_payload_rate', 'progress'],
                     totals_action, args.quiet)
     sizegigs = sizetotal/1024/1024/1024
     if notify is True:
@@ -259,15 +312,14 @@ def overtime_action(torrent_id, torrent_info):
     if trunc_tracker(torrent_info['tracker']) in PRIV_TRACKERS and torrent_info['progress'] == 100 and torrent_info['label'] in PROC_LABELS:
         curtime = datetime.now()
         seedtime = datestring2object(torrent_info["time_added"])
-        print('{} > {}'.format(curtime, seedtime))
         if curtime > seedtime + timedelta(days=args.DELDAYS):
             if args.delete is True:
                 log.warning('deleting private torrent over seed time limit of {} Days: {} - {}'
-                            .format(args.DELDAYS,elapsedTime(curtime,seedtime),torrent_info['name']))
+                            .format(args.DELDAYS,elapsedTime(seedtime, curtime),torrent_info['name']))
                 return 'D'
             else:
                 log.info('private torrent found over seed time limit of {} Days: {} - {}'
-                         .format(args.DELDAYS,elapsedTime(curtime,seedtime),torrent_info['name']))
+                         .format(args.DELDAYS,elapsedTime(seedtime,curtime),torrent_info['name']))
                 return 'l'
     return ''
 
@@ -316,7 +368,7 @@ if args.action_to_perform == 'chekstall':
     checkstall_torrents()
     exit()
 
-if args.action_to_perform == 'public':   
+if args.action_to_perform == 'public':
    log.info('checking for finished public torrents to delete')
    finished_public_torrents()
 
