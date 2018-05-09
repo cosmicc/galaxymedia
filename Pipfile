@@ -13,7 +13,7 @@ gitpython = "*"
 ffmpy = "*"
 pexpect = "*"
 publicsuffix = "*"
-pushover = "*"
 wakeonlan = "*"
+python-pushover = "*"
 
 [dev-packages]

@@ -4,5 +4,5 @@ ffmpy==0.2.2
 GitPython==2.1.9
 pexpect==4.5.0
 publicsuffix==1.1.0
-pushover==0.4
+python-pushover==0.3
 wakeonlan==1.1.6
