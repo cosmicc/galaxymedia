@@ -13,7 +13,7 @@ from configparser import ConfigParser
 
 import publicsuffix
 
-sys.path.insert(0, '/opt/galaxymodules')
+sys.path.insert(0, 'modules')
 import processlock
 from pushover2 import pushover
 sys.path.insert(0, '/opt/deluge_framework')
@@ -29,13 +29,13 @@ __progname__ = "torrent_maintenance"
 __description__ = "Galaxy deluge torrent maintenance tool"
 __detaildesc__ = ""
 
-PROC_LABELS = ['tv', 'movies', 'ufc', 'comedy', 'files', 'music']  # torrent labels that will process
-PROC_DIRS = PROC_LABELS
-PRIV_TRACKERS = ['iptorrents.com', 'pleasuredome.org.uk', 'empirehost.me', 'stackoverflow.tech']  # trackers that are considered private
-
 configfile = '/etc/galaxymediatools.cfg'
 config = ConfigParser()
 config.read(configfile)
+
+PROC_LABELS = ['tv', 'movies', 'ufc', 'comedy', 'files', 'music']  # torrent labels that will process
+PROC_DIRS = PROC_LABELS
+PRIV_TRACKERS = ['iptorrents.com', 'pleasuredome.org.uk', 'empirehost.me', 'stackoverflow.tech']  # trackers that are considered private
 
 app_key = config.get('pushover', 'download_key')
 

@@ -10,8 +10,8 @@ import logging
 import argparse
 from pathlib import Path
 
-sys.path.insert(0, '/opt/galaxymodules')
-import gentools
+import modules.processlock as processlock
+import modules.loadconfig as cfg
 
 __author__ = "Ian Perry"
 __copyright__ = "Copyright 2018, Galaxy Media"
@@ -21,7 +21,8 @@ __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
 __progname__ = "dircleaner"
 
-BAD_EXTENSIONS = ['.ignore', '.txt', '.gif', '.bat', '.bmp', '.jpg', '.exe', '.nfo', '.idx', '.sub', '.srt', '.me', '.']
+
+BAD_EXTENSIONS = cfg.config.getlist('general', 'del_extensions')
 pdirs = ['/mnt/incoming/process/movies', '/mnt/incoming/process/tv', '/mnt/incoming/process/comedy', '/mnt/incoming/process/concerts', '/mnt/incoming/process/ufc', '/mnt/storage/video/Movies', '/mnt/storage/video/TV Series', '/mnt/storage/video/UFC Events', '/mnt/storage/video/Comedy']
 
 log = logging.getLogger()
@@ -60,6 +61,7 @@ tremdirs = 0
 linksdel = 0
 
 def main():
+    processlock.lock()
     if os.path.ismount('/mnt/incoming'):
         log.debug('/mnt/incoming is mounted. continuing.')
     else:
@@ -72,6 +74,15 @@ def main():
                 cleanFile(os.path.join(root, name))
         removeEmptyFolders(pdir)
     endIt()
+
+def float_trunc_1dec(num):
+    try:
+        tnum = num // 0.1 / 10
+    except:
+        log.exception('Error truncating float to 1 decimal: {}'.format(num))
+        return False
+    else:
+        return tnum
 
 def endIt():
     if errordet != 0:
@@ -121,7 +132,7 @@ def cleanFile(cfile):
         log.info('bad extension found, removing file [{}]'.format(cfile))
         remove_file(cfile)
         return
-    fsize = gentools.float_trunc_1dec(os.path.getsize(cfile) / 100000)
+    fsize = float_trunc_1dec(os.path.getsize(cfile) / 100000)
     log.debug('[{} Meg] file size found in file [{}]'.format(fsize,cfile))
     if fsize < args.filesize:
         log.debug('[{} Meg] is too small to keep for file {}'.format(fsize,cfile))

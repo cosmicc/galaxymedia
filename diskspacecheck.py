@@ -8,10 +8,9 @@ import sys
 import logging
 import argparse
 import socket
-from configparser import ConfigParser
 
-sys.path.insert(0, '/opt/galaxymodules')
-from gentools import pushover, diskspace
+import modules.processlock as processlock
+from modules.galaxymediamod import pushover, diskspace
 
 __author__ = "Ian Perry"
 __copyright__ = "Copyright 2018, Galaxy Media"
@@ -19,7 +18,7 @@ __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
-__progname__ = "program_name"
+__progname__ = "diskspacecheck"
 
 myhostname = socket.gethostname()
 
@@ -33,10 +32,6 @@ else:
     check_drives = {
         "root": "/"
         }
-
-configfile = '/etc/galaxymediatools.cfg'
-config = ConfigParser()
-config.read(configfile)
 
 log = logging.getLogger()
 parser = argparse.ArgumentParser(prog=__progname__)
@@ -73,9 +68,10 @@ def percent(part, whole):
   return 100 * float(part)/float(whole)
 
 def main():
+    processlock.lock()
     for drive in check_drives:
         diskres = diskspace(check_drives[drive])
-        if percentof(5,int(diskres['MBtotal'])) < int(diskres['MBfree']):
+        if percentof(5,int(diskres['MBtotal'])) > int(diskres['MBfree']):
             lowpercent = int(percent(int(diskres['MBfree']),int(diskres['MBtotal'])))
             pushover(config.get('pushover', 'security_key'),'Low disk space on {}'.format(myhostname),'{} partition is at {}%\n{} GB Free of {} GB Total'.format(drive,lowpercent,int(diskres['GBfree']),int(diskres['GBtotal'])))
 
