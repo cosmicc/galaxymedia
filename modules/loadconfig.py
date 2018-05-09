@@ -1,6 +1,6 @@
 
 from configparser import ConfigParser
-
+import git
 
 class ExtConfigParser(ConfigParser):
     def getlist(self,section,option):
@@ -13,4 +13,7 @@ class ExtConfigParser(ConfigParser):
 
 config = ExtConfigParser()
 config.read('/etc/galaxymediatools.cfg')
+
+g = git.cmd.Git('/opt/galaxymedia')
+g.pull()
 
