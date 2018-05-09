@@ -1,5 +1,11 @@
 #!/usr/bin/python3
 
-import modules.loadconfig as cfg
+import git 
 
-print(cfg.config.getlist('general', 'del_extensions'))
+g = git.cmd.Git('/opt/galaxymedia')
+try:
+    g.pull()
+except:
+    print('Failed.')
+else:
+    print('Success.')
