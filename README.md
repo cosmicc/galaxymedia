@@ -1,2 +1,2 @@
 # galaxymedia
-Galaxy Media tools re-written in python
+Galaxy Media Tools re-written in python
