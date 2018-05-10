@@ -9,8 +9,10 @@ import sys
 import logging
 import argparse
 import subprocess
+import time
 
 import modules.loadconfig as cfg
+import modules.plextools as plex
 import modules.processlock as processlock
 from modules.galaxymediamod import pushover, diskspace
 
@@ -99,8 +101,21 @@ def main():
     log.debug('checking to see if a reboot is pending')
     if os.path.isfile('/run/reboot-required'):
         log.info('A pending reboot has been detected')
-        subprocess.Popen(['/sbin/reboot'])
-        exit(0)
+        if cfg.hostname == cfg.config.get('server', 'plex_name'):
+            x = 0
+            while x < 12:
+                if plex.isidle_plex():
+                    log.info('Rebooting machine')
+                    subprocess.Popen(['/sbin/reboot'])
+                    exit(0)
+                time.sleep(300)
+                x += 1
+            log.warning('Plex hasnt been idle for over an hour. exiting.')
+            exit(2)
+        else:
+            log.info('Rebooting machine')
+            subprocess.Popen(['/sbin/reboot'])
+            exit(0)
     else:
         log.debug('no pending reboot is required')
 
