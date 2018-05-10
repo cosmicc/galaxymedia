@@ -31,11 +31,11 @@ parser.add_argument('-vv', '--info', action='store_true', help='more verbose out
 parser.add_argument('-vvv', '--debug', action='store_true', help='full verbose output (debug)')
 parser.add_argument('-l', '--logfile', help='log output to a specified file. default: no log to file')
 args = parser.parse_args()
-if args.debug == True:
+if args.debug:
     log.setLevel(logging.DEBUG)
-elif args.info == True:
+elif args.info:
     log.setLevel(logging.INFO)
-elif args.verbose == True:
+elif args.verbose:
     log.setLevel(logging.WARNING)
 else:
     log.setLevel(logging.ERROR)

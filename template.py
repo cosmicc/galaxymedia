@@ -7,6 +7,8 @@
 import logging
 import argparse
 
+from colorama import Fore, Back, Style
+
 import modules.loadconfig as cfg
 import modules.processlock as processlock
 
@@ -17,37 +19,46 @@ __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
 __progname__ = "program_name"
+__description__ = "Galaxy deluge torrent maintenance tool"
+__detaildesc__ = ""
 
 log = logging.getLogger()
-parser = argparse.ArgumentParser(prog=__progname__)
+parser = argparse.ArgumentParser(prog=__progname__, description=__description__, epilog=__detaildesc__,
+                                 formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
-parser.add_argument('-q', '--quiet', action='store_true', help='supress logging output to console. default: error logging')
-parser.add_argument('-v', '--verbose', action='store_true', help='verbose output (warning)')
-parser.add_argument('-vv', '--info', action='store_true', help='more verbose output (info)')
-parser.add_argument('-vvv', '--debug', action='store_true', help='full verbose output (debug)')
+logging_group = parser.add_mutually_exclusive_group(required=False)
+logging_group.add_argument('-q', '--quiet', action='store_false', help='supress normal console output')
+logging_group.add_argument('--debug', action='store_true', help='Debug mode logging to console')
+parser.add_argument('-v', '--verbose', action='count', help='logging verbosity level')
 parser.add_argument('-l', '--logfile', help='log output to a specified file. default: no log to file')
 args = parser.parse_args()
-if args.debug == True:
-    log.setLevel(logging.DEBUG)
-elif args.info == True:
-    log.setLevel(logging.INFO)
-elif args.verbose == True:
-    log.setLevel(logging.WARNING)
-else:
-    log.setLevel(logging.ERROR)
-console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
-log_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
-if args.quiet is False:
+if args.debug is True:
+    console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
     log_console = logging.StreamHandler()
     log.addHandler(log_console)
     log_console.setFormatter(console_format)
 if args.logfile is not None:
+    log_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
     log_fileh = logging.FileHandler(args.logfile)
     log.addHandler(log_fileh)
     log_fileh.setFormatter(log_format)
+if args.debug is False and args.logfile is None:
+    log.addHandler(logging.NullHandler())
+    if args.verbose:
+        if args.verbose == 1:
+            log.setLevel(logging.WARNING)
+        elif args.verbose == 2:
+            log.setLevel(logging.INFO)
+        elif args.verbose >= 3:
+            log.setLevel(logging.DEBUG)
+        else:
+            log.setLevel(logging.ERROR)
+
 
 def main():
     processlock.lock()
+    print('This is is {}fantastic {}colors{}'.format(Fore.YELLOW, Fore.CYAN, Fore.RESET))
+
 
 if __name__ == '__main__':
     main()
