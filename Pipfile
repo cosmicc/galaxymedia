@@ -15,5 +15,6 @@ pexpect = "*"
 publicsuffix = "*"
 wakeonlan = "*"
 python-pushover = "*"
+ntplib = "*"
 
 [dev-packages]

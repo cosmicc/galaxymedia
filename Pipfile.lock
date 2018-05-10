@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "538a3b04265566740768a93011b8f87212b054c3c7e3d327a543133c7a0c6cc3"
+            "sha256": "a812e8cce618f16cb186f7c12ee56b93a4dbd9ad55909ddb523c0c044b384c04"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -67,6 +67,13 @@
                 "sha256:8c7309c718f94b3a625cb648ace320157ad16ff131ae0af362c9f21b80ef6ec4"
             ],
             "version": "==2.6"
+        },
+        "ntplib": {
+            "hashes": [
+                "sha256:c4621b64d50be9461d9bd9a71ba0b4af06fbbf818bbd483752d95c1a4e273ede"
+            ],
+            "index": "pypi",
+            "version": "==0.3.3"
         },
         "pexpect": {
             "hashes": [

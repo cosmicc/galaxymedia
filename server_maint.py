@@ -8,9 +8,9 @@ import os
 import sys
 import logging
 import argparse
-import socket
 import subprocess
 
+import modules.loadconfig as cfg
 import modules.processlock as processlock
 from modules.galaxymediamod import pushover, diskspace
 
@@ -20,11 +20,9 @@ __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
-__progname__ = "diskspacecheck"
+__progname__ = "server_maint"
 
-myhostname = socket.gethostname()
-
-if myhostname != 'mercury':
+if cfg.hostname != 'mercury':
     check_drives = {
         "root": "/",
         "incoming": "/mnt/incoming",

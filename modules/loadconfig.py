@@ -1,5 +1,5 @@
-
 from configparser import ConfigParser
+from socket import gethostname
 import git
 
 class ExtConfigParser(ConfigParser):
@@ -13,6 +13,7 @@ class ExtConfigParser(ConfigParser):
 
 config = ExtConfigParser()
 config.read('/etc/galaxymediatools.cfg')
+hostname = gethostname()
 
 g = git.cmd.Git('/opt/galaxymedia')
 g.pull()
