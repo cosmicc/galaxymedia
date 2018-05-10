@@ -16,5 +16,7 @@ publicsuffix = "*"
 wakeonlan = "*"
 python-pushover = "*"
 ntplib = "*"
+colorama = "*"
+jedi = "*"
 
 [dev-packages]

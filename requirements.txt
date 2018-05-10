@@ -1,9 +1,10 @@
-ffmpy==0.2.2
-publicsuffix==1.1.0
-pexpect==4.5.0
-python-pushover==0.3
-wakeonlan==1.1.6
 ntplib==0.3.3
+pexpect==4.5.0
+ffmpy==0.2.2
+wakeonlan==1.1.6
+python_pushover==0.3
+publicsuffix==1.1.0
+apt==0.7.8
 beautifulsoup4==4.6.0
 GitPython==2.1.9
 pushover==0.4

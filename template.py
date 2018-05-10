@@ -3,7 +3,6 @@
  server maintenance script
 
 """
-
 import logging
 import argparse
 

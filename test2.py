@@ -6,7 +6,7 @@ g = git.cmd.Git('/opt/galaxymedia')
 g.pull()
 print(dir(git.cmd.Git))
 
-#print(g.version_info)
+# print(g.version_info)
 """
 #repo = git.Repo('/opt/galaxymedia')
 
