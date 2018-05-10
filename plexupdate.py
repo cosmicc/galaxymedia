@@ -60,7 +60,7 @@ def main():
     elif result == 6:
         log.warning('Plex update was deferred due to server busy')
     elif result == 10:
-        log.info('Plex update has updated the plex serverto version {}'.format('version'))
+        log.warning('Plex update has updated the plex server to version {}'.format('version'))
     elif result == 255:
         log.error('Plex update has failed with a configuration error')
     else:
