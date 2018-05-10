@@ -49,7 +49,7 @@ if args.logfile is not None:
 
 def main():
     processlock.lock()
-    plexupd = subprocess.Popen(['/opt/plexupdate/plexupdate.sh', '-a', '-d', ,'-u', '--notify-success', '--config', '/etc/plexupdate.conf'], stdout=subprocess.PIPE)
+    plexupd = subprocess.Popen(['/opt/plexupdate/plexupdate.sh', '-a', '-d', '-u', '--notify-success', '--config', '/etc/plexupdate.conf'], stdout=subprocess.PIPE)
     result = plexupd.wait()
     if result == 0:
         log.debug('Plex update completed successfully with no updates')
