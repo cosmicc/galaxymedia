@@ -50,6 +50,7 @@ if args.logfile is not None:
     log.addHandler(log_fileh)
     log_fileh.setFormatter(log_format)
 
+
 def main():
     processlock.lock()
 
