@@ -1,0 +1,76 @@
+#!/bin/bash
+
+#source=/opt/galaxymediatools/prechecknl
+
+TMC=`find /video/Movies -type f | wc -l`
+
+QTEP=`find /video/Movies -type f -name "*1080p*" | wc -l`
+QSTP=`find /video/Movies -type f -name "*720p*" | wc -l`
+QSD=`find /video/Movies -type f -name "*SD*" | wc -l`
+QFEP=`find /video/Movies -type f -name "*480p*" | wc -l`
+QFSP=`find /video/Movies -type f -name "*576p*" | wc -l`
+THD=$((QTEP+QSTP))
+TSD=$((QFSP+QSD+QFEP))
+
+AC3=`find /video/Movies -type f -name "*AC3*" | wc -l`
+NODATE=`find /video/Movies -type f -name "*()*" | wc -l`
+TMKV=`find /video/Movies -type f -name "*.mkv" | wc -l`
+TMPF=`find /video/Movies -type f -name "*.mp4" | wc -l`
+TAVI=`find /video/Movies -type f -name "*.avi" | wc -l`
+TOTH=$((TMC-TMKV-TMPF-TAVI))
+
+TTVS=`find "/video/TV Series" -maxdepth 1 -type d | wc -l`
+TTSA=`find "/video/TV Series" -maxdepth 2 -type d | wc -l`
+TTVE=`find "/video/TV Series" -type f | wc -l`
+TTE=`find "/video/TV Series" -type f -name "*.trans.*" | wc -l`
+NTE=`find "/video/TV Series" -type f -name "*.ntrans.*" | wc -l`
+TTS=$((TTVE-TTE-NTE))
+TTSE=$((TTSA-TTVS))
+
+TCV=`find "/video/Concerts" -type f | wc -l`
+TSU=`find "/video/Comedy" -type f | wc -l`
+TDV=`find "/video/UFC Events" -type f | wc -l`
+
+MDS=`du /video/Movies -h | tail -1`
+TDS=`du "/video/TV Series" -h | tail -1` 
+
+echo " "
+#echo "_________________________________________________________________________"
+echo " "
+echo -e " ${cyan}Total Movies: ${yellow}$TMC"
+echo -e " ${green}$MDS"
+echo " "
+echo -e " ${cyan}High Definition Movies......${yellow}$THD"
+echo -e " ${cyan}Standard Definition Movies..${yellow}$TSD"
+echo " "
+echo -e " ${cyan}1080p Movies....${yellow}$QTEP"
+echo -e " ${cyan}720p Movies.....${yellow}$QSTP"
+echo -e " ${cyan}576p Movies.....${yellow}$QFSP"
+echo -e " ${cyan}480p Movies.....${yellow}$QFEP"
+echo -e " ${cyan}Sub 480p Movies.${yellow}$QSD"
+echo " "
+echo -e " ${cyan}MP4 Movies......${yellow}$TMPF"
+echo -e " ${cyan}MKV Movies......${yellow}$TMKV"
+echo -e " ${cyan}AVI Movies......${yellow}$TAVI"
+echo -e " ${cyan}Other Movies....${yellow}$TOTH"
+echo -e " ${cyan}AC3 Audio Movies....${yellow}$AC3"
+echo -e " ${cyan}Missing Date Movies....${yellow}$NODATE"
+echo " "
+echo " --"
+echo -e " ${cyan}Total TV Shows: ${yellow}$TTVS"
+echo -e " ${green}$TDS"
+echo " "
+echo -e " ${cyan}Total Show Episodes..${yellow}$TTVE"
+echo -e " ${cyan}Total Show Seasons...${yellow}$TTSE"
+echo " "
+echo -e " ${cyan}Transcoded TV Episodes........${yellow}$TTE"
+echo -e " ${cyan}Non-Transcodable TV Episodes..${yellow}$NTE"
+echo -e " ${cyan}Untouched TV Episodes.........${yellow}$TTS"
+echo " "
+echo -e " ${cyan}Total Stand-Up Comedy Videos..${yellow}$TSU"
+echo -e " ${cyan}Total Concert Videos..........${yellow}$TCV"
+echo -e " ${cyan}Total UFC Event Videos......${yellow}$TDV"
+echo " "
+echo -e "${green}`df /video -h`${endcolor}"
+echo " "
+#echo "__________________________________________________________________________"
