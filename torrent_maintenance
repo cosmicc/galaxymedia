@@ -1,7 +1,0 @@
-#/bin/bash
-
-/opt/galaxymedia/torrent_maint.py public --delete -q -v -l /mnt/incoming/logs/torrent_maintenance.log
-/opt/galaxymedia/torrent_maint.py seedtime --delete -q -v -l /mnt/incoming/logs/torrent_maintenance.log
-/opt/galaxymedia/torrent_maint.py ratio --delete -q -v -l /mnt/incoming/logs/torrent_maintenance.log
-/opt/galaxymedia/torrent_maint.py stale --delete -q -v -l /mnt/incoming/logs/torrent_maintenance.log
-/usr/bin/python3 /opt/galaxymedia/dircleaner.py -l /mnt/incoming/logs/dircleaner.log
