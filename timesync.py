@@ -11,6 +11,7 @@ import subprocess
 
 from ntplib import NTPClient
 
+from modules.galaxymediamod import require_root
 import modules.loadconfig as cfg
 import modules.processlock as processlock
 
@@ -51,11 +52,10 @@ if args.logfile is not None:
     log_fileh.setFormatter(log_format)
 
 
-def main():
-    processlock.lock()
-
+def checktime():
+    require_root()
     ntp = NTPClient()
-    timeservers= cfg.config.getlist('general', 'time_servers')
+    timeservers = cfg.config.getlist('general', 'time_servers')
     for tserver in timeservers:
         log.debug('Trying time server [{}]'.format(tserver))
         try:
@@ -64,16 +64,22 @@ def main():
             log.warning('Time server [{}] is not responding, trying next server'.format(tserver))
         else:
             newtime = ctime(response.tx_time)
-            log.info('Time server [{}] returned [{}] with an offset of {}'.format(tserver,newtime,response.offset))
+            log.info('Time server [{}] returned [{}] with an offset of \
+                     {}'.format(tserver,newtime,response.offset))
             log.debug('Updating system time with new queried time')
             cmddate = subprocess.Popen(['date', '-s', newtime], stdout=subprocess.PIPE)
-            returncode = cmddate.wait()
-            if returncode == 0:
-                log.info('System time updated successfully')
-            else:
-                log.error('System time failed to update')
-            exit(0)
-    log.error('No time servers responded in time. could not update time')
+            return cmddate.wait()
+
+def main():
+    require_root()
+    processlock.lock()
+    returncode = checktime()
+    if returncode == 0:
+        log.info('System time updated successfully')
+        exit(0)
+    else:
+        log.error('System time failed to update')
+        exit(1)
 
 
 if __name__ == '__main__':

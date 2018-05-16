@@ -34,6 +34,11 @@ config.read(configfile)
 categories = {'movies':config.get('plex', 'movie_section'),'tv':config.get('plex', 'tv_section'),'comedy':config.get('plex', 'comedy_section'),'ufc':config.get('plex', 'ufc_section'),}
 plextoken = config.get('plex', 'token')
 
+def require_root():
+    user = os.getenv("SUDO_USER")
+    if user is None:
+        log.error("This program needs root privledges")
+        exit(1)
 
 def remote_cmd(server,username,password,cmd):
     ssh = pxssh.pxssh()

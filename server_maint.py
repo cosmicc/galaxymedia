@@ -79,7 +79,7 @@ def main():
             lowpercent = int(percent(int(diskres['MBfree']),int(diskres['MBtotal'])))
             pushover(config.get('pushover', 'security_key'),'Low disk space on {}'.format(myhostname),'{} partition is at {}%\n{} GB Free of {} GB Total'.format(drive,lowpercent,int(diskres['GBfree']),int(diskres['GBtotal'])))
     log.info('Staring OS unattended upgrade process')
-    upd = subprocess.Popen(["/usr/bin/unattended-upgrade"], stdout=subprocess.PIPE)
+    upd = subprocess.Popen(["/usr/bin/python3.5", "/usr/bin/unattended-upgrade"], stdout=subprocess.PIPE)
     returncode = upd.wait()
     if returncode == 0:
         log.info('Unattended-upgrade process completed successfully')

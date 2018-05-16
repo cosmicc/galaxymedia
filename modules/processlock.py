@@ -59,11 +59,12 @@ def unlock():
     # if os.path.isfile(lockfile):
     #    os.remove(lockfile)
 
-
-if os.path.isdir('/run'):
+if os.access('/run', os.W_OK) and os.path.isdir('/run'):
     lpath = '/run'
-elif os.path.isdir('/var/tmp'):
+elif os.access('/var/tmp', os.W_OK) and os.path.isdir('/var/tmp'):
     lpath = '/var/tmp'
+elif os.access('/tmp', os.W_OK) and os.path.isdir('/tmp'):
+    lpath = '/tmp'
 else:
     log.critical('Cannot find a valid place to put the lockfile. Exiting')
     exit(1)
