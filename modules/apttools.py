@@ -1,7 +1,7 @@
 #!/usr/bin/python3
 
 import os
-import apt
+#import apt
 
 SYNAPTIC_PINFILE = "/var/lib/synaptic/preferences"
 
