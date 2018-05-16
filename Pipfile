@@ -13,6 +13,7 @@ pexpect = ">=4.5.0"
 publicsuffix = ">=1.1.0"
 wakeonlan = ">=1.1.6"
 GitPython = ">=2.1.9"
+configparser = "*"
 
 [dev-packages]
 

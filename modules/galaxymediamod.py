@@ -12,7 +12,7 @@ from urllib.parse import urlparse
 from datetime import datetime
 from configparser import ConfigParser
 
-from pushover import Client
+from modules.pushover import Client
 
 import publicsuffix
 from pexpect import pxssh
