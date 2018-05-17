@@ -101,7 +101,7 @@ def main():
     log.debug('checking to see if a reboot is pending')
     if os.path.isfile('/run/reboot-required'):
         log.info('A pending reboot has been detected')
-        if cfg.hostname == cfg.config.get('server', 'plex_name'):
+        if cfg.hostname == cfg.config.get('servers', 'plex_name'):
             x = 0
             while x < 12:
                 if plex.isidle_plex():
