@@ -1,6 +1,6 @@
-#!/usr/bin/python3
+#!/usr/bin/python3.6
 """
- fuctions used in mercury tool scripts
+ fuctions used in galaxymedia scripts
 
 """
 
@@ -10,29 +10,28 @@ import logging
 from urllib.request import urlopen
 from urllib.parse import urlparse
 from datetime import datetime
+
 from configparser import ConfigParser
-
-from modules.pushover import Client
-
 import publicsuffix
 from pexpect import pxssh
 from wakeonlan import send_magic_packet as wol
 
-__author__ = "Ian Perry"
-__copyright__ = "Copyright 2018, Galaxy Media"
-__license__ = "GPL"
-__version__ = "1.0.0"
-__maintainer__ = "Ian Perry"
-__email__ = "ianperry99@gmail.com"
-__progname__ = "galaxymediamod"
+import modules.loadconfig as cfg
+from modules.pushover import Client
 
 log = logging.getLogger()
-configfile = '/etc/galaxymediatools.cfg'
-config = ConfigParser()
-config.read(configfile)
 
-categories = {'movies':config.get('plex', 'movie_section'),'tv':config.get('plex', 'tv_section'),'comedy':config.get('plex', 'comedy_section'),'ufc':config.get('plex', 'ufc_section'),}
-plextoken = config.get('plex', 'token')
+categories = {'movies': cfg.get('plex', 'movie_section'), 'tv': cfg.get('plex', 'tv_section'), 'comedy': cfg.get('plex', 'comedy_section'), 'ufc': cfg.get('plex', 'ufc_section')}
+plextoken = cfg.get('plex', 'token')
+
+
+def is_root():
+    user = os.getenv("SUDO_USER")
+    if user is None:
+        return False
+    else:
+        return True
+
 
 def require_root():
     user = os.getenv("SUDO_USER")
@@ -40,11 +39,11 @@ def require_root():
         log.error("This program needs root privledges")
         exit(1)
 
-def remote_cmd(server,username,password,cmd):
-    ssh = pxssh.pxssh()
 
+def remote_cmd(server, username, password, cmd):
+    ssh = pxssh.pxssh()
     try:
-        ssh.login(server,username,password)
+        ssh.login(server, username, password)
     except pxssh.ExceptionPexpect as e:
         print('Failed to connect to remote server with SSH')
         return False
@@ -70,7 +69,7 @@ def wakeup(macaddr):
 
 def pushover(app_key, ptitle, message):
     try:
-        client = Client(config.get('pushover', 'user_key'), api_token=app_key)
+        client = Client(cfg.get('pushover', 'user_key'), api_token=app_key)
         client.send_message(message, title=ptitle)
     except Exception as e:
         log.error('Pushover notification failed. Error: %s' % str(e))
@@ -236,36 +235,3 @@ def diskspace(path):
                 fsreturn['Bytesfree'] = round(fsfree, 1)
                 fsreturn['Bytestotal'] = round(fsbytes, 1)
                 return fsreturn
-
-
-def isplex_alive():
-    pURL = 'http://{}:32400/status/sessions?X-Plex-Token={}'.format(config.get('servers', 'plex_ip'),config.get('plex', 'token'))
-    try:
-        urlopen(pURL).read()
-    except:
-        log.warning('Plex server status returned DOWN')
-        return False
-    else:
-        log.debug('Plex server status returned UP')
-        return True
-
-
-def isplex_idle():
-    pURL = 'http://{}:32400/status/sessions?X-Plex-Token={}'.format(config.get('servers', 'plex_ip'),config.get('plex', 'token'))
-    try:
-        sauce = urlopen(pURL).read()
-    except:
-        log.error('URL Error quering plex server for status')
-    else:
-        log.debug('Plex server status update successfully')
-        soup = bs(sauce,'xml')
-
-        inputTag = soup.find("MediaContainer")
-        output = int(inputTag['size'])
-        if output > 0:
-            log.info('Plex server status returned NOT IDLE')
-            return False
-        else:
-            log.info('Plex server status returned IDLE')
-            return True
-
