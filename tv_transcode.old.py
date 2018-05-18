@@ -6,7 +6,6 @@
 import os
 import logging
 import argparse
-from datetime import datetime, timedelta
 
 from modules.galaxymediamod import *
 import modules.loadconfig as cfg
@@ -59,26 +58,18 @@ def main():
     processlock.lock()
     log.debug('Starting Galaxymedia TV Transcoder')
     tv_dir = cfg.config.get('directories', 'tv_dir')
-    daysback = int(cfg.config.get('general', 'tv_daysback'))
-    log.info(f'Compiling list of tv episodes to transcode on {tv_dir}')
-    transvids = []
-    numvids = 0
-    days_ago = datetime.now() - timedelta(days=daysback)
+    log.debug(f'Searching {tv_dir} for tv episodes to transcode')
     for (root, dirs, files) in os.walk(tv_dir):
         for file_ in files:
             videofile = os.path.join(root, file_)
-            filetime = datetime.fromtimestamp(os.path.getctime(videofile))
-            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 300000000 \
-            and filetime < days_ago:
-                transvids.append(videofile)
-                numvids += 1
-                log.debug(f'Added video {file_name(videofile)} to transcode list')
-    log.info(f'Transcode list is complete with {numvids} episodes')
-    for vid in transvids:
-        log.info(f'Determining ffmpeg settings for video {file_name(vid)}')
-        vinfo = video_info(vid)
-        ffmpeg_opstring = f'-i {in_file}'
-
+            log.debug(f'### Processing next video file {file_name(videofile)} ###')
+            if not is_trans(videofile) and not is_tv_excluded(videofile):
+                if not video_isinteg(videofile):
+                    log.warning(f'Removing failed integrity video file {videofile}')
+                    # Delete video file here
+                else:
+                    log.debug(f'video file passed all integrity checks, preparing to process {videofile}')
+                    print(video_info(videofile))
 
 
 if __name__ == '__main__':

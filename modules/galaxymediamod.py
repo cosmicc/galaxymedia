@@ -27,6 +27,20 @@ cfg.config.get('plex', 'comedy_section'), 'ufc': cfg.config.get('plex', 'ufc_sec
 plextoken = cfg.config.get('plex', 'token')
 
 
+def video_transcode(in_file, ffmpeg_options):
+    log.info(f'Starting ffmpeg transcode on video {file_name(in_file)}')
+    transdir = cfg.config.get('directories', 'local_transcode')
+    if not is_dirwritable(transdir):
+        log.error(f'Local transcode directory [{transdir}] is not writable. Exiting.')
+    if not os.path.is_file(in_file):
+        log.error(f'Error accessing video file for transcode {in_file}. Exiting.')
+    ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options)
+    try:
+        ffmpeg.run()
+    except:
+        pass
+
+
 def video_info(in_file):
     info = {}
     ffprobe = ffmpy.FFprobe(global_options=("-loglevel quiet -sexagesimal -of json -show_format -show_streams", f'"{in_file}"'))
@@ -35,11 +49,15 @@ def video_info(in_file):
     ffinfo = json.loads(ff0string)
     info['format'] = ffinfo["format"]["format_name"]
     info['streams'] = ffinfo["format"]["nb_streams"]
-    info['bit_rate'] = ffinfo["format"]["bit_rate"]
+    try:
+        info['bit_rate'] = ffinfo["format"]["bit_rate"]
+    except KeyError:
+        info['bit_rate'] = 'na'
     print(in_file)
     for stream in range(ffinfo["format"]["nb_streams"]):
         info['stream'+str(stream)] = {'codec_type': ffinfo["streams"][stream]["codec_type"]}
-        info['stream'+str(stream)].update({'codec_name': ffinfo["streams"][stream]["codec_name"]})
+        if ffinfo["streams"][stream]["codec_type"] != 'data':
+            info['stream'+str(stream)].update({'codec_name': ffinfo["streams"][stream]["codec_name"]})
         if ffinfo["streams"][stream]["codec_type"] == 'video':
             info['stream'+str(stream)].update({'width': ffinfo["streams"][stream]["width"]})
             info['stream'+str(stream)].update({'height': ffinfo["streams"][stream]["height"]})
@@ -65,6 +83,21 @@ def is_tv_excluded(in_file):
         if dir_is_parent(edir, file_dir(in_file)):
             return True
     return False
+
+
+def is_dirwritable(dirname):
+    user_id = os.geteuid()
+    group_id = os.getegid()
+    dir_stat = os.stat(dirname)
+    directory_mode = dir_stat[stat.ST_MODE]
+    if user_id == dir_stat[stat.ST_UID] and stat.S_IRWXU & directory_mode == stat.S_IRWXU:
+        return True
+    elif group_id == dir_stat[stat.ST_GID] and stat.S_IRWXG & directory_mode == stat.S_IRWXG:
+        return True
+    elif stat.S_IRWXO & directory_mode == stat.S_IRWXO:
+        return True
+    else:
+        return False
 
 
 def dir_is_parent(parent_path, child_path):
