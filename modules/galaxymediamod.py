@@ -7,11 +7,12 @@
 import os
 import subprocess
 import logging
+import json
 from urllib.request import urlopen
 from urllib.parse import urlparse
 from datetime import datetime
 
-from configparser import ConfigParser
+import ffmpy
 import publicsuffix
 from pexpect import pxssh
 from wakeonlan import send_magic_packet as wol
@@ -21,22 +22,149 @@ from modules.pushover import Client
 
 log = logging.getLogger()
 
-categories = {'movies': cfg.get('plex', 'movie_section'), 'tv': cfg.get('plex', 'tv_section'), 'comedy': cfg.get('plex', 'comedy_section'), 'ufc': cfg.get('plex', 'ufc_section')}
-plextoken = cfg.get('plex', 'token')
+categories = {'movies': cfg.config.get('plex', 'movie_section'), 'tv': cfg.config.get('plex', 'tv_section'), 'comedy':
+cfg.config.get('plex', 'comedy_section'), 'ufc': cfg.config.get('plex', 'ufc_section')}
+plextoken = cfg.config.get('plex', 'token')
+
+
+def video_info(in_file):
+    info = {}
+    ffprobe = ffmpy.FFprobe(global_options=("-loglevel quiet -sexagesimal -of json -show_format -show_streams", f'"{in_file}"'))
+    stdout, stderr = ffprobe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
+    ff0string = str(stdout, 'utf-8')
+    ffinfo = json.loads(ff0string)
+    info['format'] = ffinfo["format"]["format_name"]
+    info['streams'] = ffinfo["format"]["nb_streams"]
+    info['bit_rate'] = ffinfo["format"]["bit_rate"]
+    print(in_file)
+    for stream in range(ffinfo["format"]["nb_streams"]):
+        info['stream'+str(stream)] = {'codec_type': ffinfo["streams"][stream]["codec_type"]}
+        info['stream'+str(stream)].update({'codec_name': ffinfo["streams"][stream]["codec_name"]})
+        if ffinfo["streams"][stream]["codec_type"] == 'video':
+            info['stream'+str(stream)].update({'width': ffinfo["streams"][stream]["width"]})
+            info['stream'+str(stream)].update({'height': ffinfo["streams"][stream]["height"]})
+            try:
+                info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]["bit_rate"]})
+            except KeyError:
+                try:
+                    info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]['tags']["BPS"]})
+                except KeyError:
+                    info['stream'+str(stream)].update({'bit_rate': 'na'})
+            info['stream'+str(stream)].update({'level': ffinfo["streams"][stream]["level"]})
+        elif ffinfo["streams"][stream]["codec_type"] == 'audio':
+            info['stream'+str(stream)].update({'channels': ffinfo["streams"][stream]["channels"]})
+            try:
+                info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]["bit_rate"]})
+            except KeyError:
+                info['stream'+str(stream)].update({'bit_rate': 'na'})
+    return info
+
+
+def is_tv_excluded(in_file):
+    for edir in cfg.config.getlist('excludes', 'tv_dirs'):
+        if dir_is_parent(edir, file_dir(in_file)):
+            return True
+    return False
+
+
+def dir_is_parent(parent_path, child_path):
+    parent_path = os.path.abspath(parent_path)
+    child_path = os.path.abspath(child_path)
+    return os.path.commonpath([parent_path]) == os.path.commonpath([parent_path, child_path])
+
+
+def video_isinteg(in_file):
+    video_extensions = cfg.config.getlist('general', 'video_extensions')
+    trans_dir = cfg.config.get('directories', 'local_transcode')
+    video_minsize = cfg.config.get('general', 'min_videosize')
+    if file_ext(in_file) not in video_extensions:
+        log.warning(f'video_isinteg returned bad video extension on file {in_file}')
+        return False
+    if os.path.getsize(in_file) < int(video_minsize) * 1000000:
+        log.warning(f'video_isinteg returned video size too small {int(os.path.getsize(in_file)/1000000)} MB < {video_minsize} MB')
+        return False
+    log.info(f'Running FFMpeg to check video file {in_file}')
+    trans_file = f'{trans_dir}/{file_name(in_file)}'
+    check_options = f'-v error -i "{in_file}" -vframes 50 -y -strict -2 "{trans_file}"'
+    ffobj = ffmpy.FFmpeg(global_options=(check_options))
+    try:
+        ffobj.run()
+    except ffmpy.FFRuntimeError as e:
+        log.warning(f'FFMpeg exitied with error: {e}')
+        if os.path.isfile(trans_file):
+            log.debug(f'Removing transcode temp file {trans_file}')
+            os.remove(trans_file)
+        return False
+    else:
+        if os.path.isfile(trans_file):
+            log.debug(f'Removing transcode temp file {trans_file}')
+            os.remove(trans_file)
+        return True
+
+
+def file_name(in_file):
+    in_file_split = in_file.split('/')
+    return in_file_split[-1]
+
+
+def file_name_noext(in_file):
+    in_file_split = in_file.split('/')
+    filename = in_file_split[-1]
+    filename_split = filename.split('.')
+    if len(filename_split) == 1:
+        log.debug(f'Function file_nameonly returned [{filename_split[0]}] for file {in_file}')
+        return filename_split[0]
+    filename_split = filename_split[:-1]
+    log.debug(f'Function file_nameonly returned [{"".join(filename_split)}] for file {in_file}')
+    return ''.join(filename_split)
+
+
+def file_dir(in_file):
+    result = os.path.dirname(in_file)
+    if result == "":
+        #log.debug(f'Function file_dir returned [.] for file {in_file}')
+        return '.'
+    else:
+        #log.debug(f'Function file_dir returned [{result}] for file {in_file}')
+        return result
+
+def file_ext(in_file):
+    in_file_split = in_file.split('/')
+    filename = in_file_split[-1]
+    filename_split = filename.split('.')
+    if len(filename_split) == 1:
+        log.debug(f'Function file_ext returned *NO* file extension for file {in_file}')
+        return ""
+    else:
+        log.debug(f'Function file_ext returned [{filename_split[-1]}] for file {in_file}')
+        return filename_split[-1]
+
+def is_trans(in_file):
+    in_file_split = in_file.split('/')
+    filename = in_file_split[-1]
+    filename_split = filename.split('.')
+    for itr in filename_split:
+        if itr == 'trans' or itr == 'ntrans':
+            log.debug(f'Function is_trans returned TRUE on file {in_file}')
+            return True
+    log.debug(f'Function is_trans returned FALSE on file {in_file}')
+    return False
 
 
 def is_root():
     user = os.getenv("SUDO_USER")
     if user is None:
+        log.debug('Root user check, this *IS NOT* a root user')
         return False
     else:
+        log.debug('Root user check, this *IS* a root user')
         return True
 
 
 def require_root():
     user = os.getenv("SUDO_USER")
     if user is None:
-        log.error("This program needs root privledges")
+        log.error("This program requires root privledges. Exiting.")
         exit(1)
 
 
@@ -69,7 +197,7 @@ def wakeup(macaddr):
 
 def pushover(app_key, ptitle, message):
     try:
-        client = Client(cfg.get('pushover', 'user_key'), api_token=app_key)
+        client = Client(cfg.config.get('pushover', 'user_key'), api_token=app_key)
         client.send_message(message, title=ptitle)
     except Exception as e:
         log.error('Pushover notification failed. Error: %s' % str(e))
