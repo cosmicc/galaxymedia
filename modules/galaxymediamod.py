@@ -91,7 +91,7 @@ def video_transcode(in_file, ffmpeg_options):
             exit(1)
         else:
             try:
-                copyfile(post_trans_file, f'{file_dir(in_file)}/{file_name(post_trans_file})}')
+                copyfile(post_trans_file, f'{file_dir(in_file)}/{file_name(post_trans_file)}')
             except:
                 log.error(f'Error copying file {post_trans_file} > {in_file}')
                 exit(1)
