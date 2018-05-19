@@ -27,26 +27,18 @@ parser = argparse.ArgumentParser(prog=__progname__, description=__description__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 parser.add_argument('--debug', action='store_true', help='Debug mode logging to console')
-parser.add_argument('-v', '--verbose', action='count', help='logging verbosity level')
 args = parser.parse_args()
+log.setLevel(logging.INFO)
 if args.debug is True:
+    log.setLevel(logging.DEBUG)
     console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
     log_console = logging.StreamHandler()
     log.addHandler(log_console)
     log_console.setFormatter(console_format)
 log_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
-log_fileh = logging.FileHandler(cfg.config.get('logs', 'tv_transcoder')
+log_fileh = logging.FileHandler(cfg.config.get('logs', 'tv_transcoder'))
 log.addHandler(log_fileh)
 log_fileh.setFormatter(log_format)
-if args.verbose:
-    if args.verbose == 1:
-        log.setLevel(logging.WARNING)
-    elif args.verbose == 2:
-        log.setLevel(logging.INFO)
-    elif args.verbose >= 3:
-        log.setLevel(logging.DEBUG)
-    else:
-        log.setLevel(logging.INFO)
 
 
 def main():
