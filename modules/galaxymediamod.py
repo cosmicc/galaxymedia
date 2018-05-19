@@ -73,7 +73,7 @@ def video_transcode(in_file, ffmpeg_options):
         return False
     else:
         end_time = datetime.now()
-        elapsed = elapsedTime(start_time, end_time)
+        elapsed = elapsedTime(end_time, start_time)
         log.info(f'FFmpeg transcode completed successfully. \
         [{int(os.path.getsize(new_trans_file)/1000000)}>{int(os.path.getsize(post_trans_file)/1000000)}] Elapsed: {elapsed}')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
@@ -111,8 +111,12 @@ def video_info(in_file):
     stdout, stderr = ffprobe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     ff0string = str(stdout, 'utf-8')
     ffinfo = json.loads(ff0string)
+    print(json.dumps(ffinfo, sort_keys=True, indent=4))
     info['format'] = ffinfo["format"]["format_name"]
     info['streams'] = ffinfo["format"]["nb_streams"]
+    info['format_long'] = ffinfo["format"]["format_long_name"]
+    duration = ffinfo["format"]["duration"].split('.')
+    info['duration'] = duration[0]
     try:
         info['bit_rate'] = ffinfo["format"]["bit_rate"]
     except KeyError:
@@ -125,6 +129,7 @@ def video_info(in_file):
         if ffinfo["streams"][stream]["codec_type"] == 'video':
             info['stream'+str(stream)].update({'width': ffinfo["streams"][stream]["width"]})
             info['stream'+str(stream)].update({'height': ffinfo["streams"][stream]["height"]})
+            info['stream'+str(stream)].update({'aspect_ratio': ffinfo["streams"][stream]["display_aspect_ratio"]})
             try:
                 info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]["bit_rate"]})
             except KeyError:

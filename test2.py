@@ -1,6 +1,9 @@
 #!/usr/bin/python3.6
 
 import sys
+import json
 from modules.galaxymediamod import *
 
-video_transcode('/mnt/incoming/test.mp4', '-sn')
+dump = json.dumps(video_info('/mnt/incoming/test3_newnew265.mkv'), sort_keys=True, indent=4)
+print('################################################')
+print(dump)

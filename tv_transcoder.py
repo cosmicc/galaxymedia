@@ -54,14 +54,14 @@ def main():
         for file_ in files:
             videofile = os.path.join(root, file_)
             filetime = datetime.fromtimestamp(os.path.getctime(videofile))
-            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 300000000 \
+            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 1000000000 \
             and filetime < days_ago:
                 transvids.append(videofile)
                 numvids += 1
                 log.debug(f'Added video {file_name(videofile)} to transcode list')
     log.info(f'Transcode list is complete with {numvids} episodes')
     for vid in transvids:
-        log.info(f'Determining ffmpeg settings for video {file_name(vid)}')
+        log.debug(f'Determining ffmpeg settings for video {file_name(vid)}')
         vinfo = video_info(vid)
         ffmpeg_opstring = ''
         if vinfo['stream0']['codec_type'] != 'video':
@@ -71,7 +71,7 @@ def main():
         if int(vinfo['stream0']["height"]) > 730:
             ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
         ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
-        crf=21:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44 \
+        crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44 \
         -c:a aac -ac 2'
         video_transcode(vid, ffmpeg_opstring)
     log.info('Galaxymedia TV Transcoder script complete.')
