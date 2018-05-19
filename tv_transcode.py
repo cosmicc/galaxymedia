@@ -1,6 +1,6 @@
 #!/usr/bin/python3.6
 """
- server maintenance script
+ Galaxymedia TV Episode Transcoder
 
 """
 import os
@@ -18,32 +18,26 @@ __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
-__progname__ = "tv_transcode"
-__description__ = "Galaxymedia TV show transcoder"
-__detaildesc__ = ""
+__progname__ = "tv_transcoder"
+__description__ = "Galaxymedia TV Episode Transcoder"
+__detaildesc__ = "Settings in config file /etc/galaxymediatools.cfg"
 
 log = logging.getLogger()
 parser = argparse.ArgumentParser(prog=__progname__, description=__description__, epilog=__detaildesc__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
-logging_group = parser.add_mutually_exclusive_group(required=False)
-logging_group.add_argument('-q', '--quiet', action='store_false', help='supress normal console output')
-logging_group.add_argument('--debug', action='store_true', help='Debug mode logging to console')
+parser.add_argument('--debug', action='store_true', help='Debug mode logging to console')
 parser.add_argument('-v', '--verbose', action='count', help='logging verbosity level')
-parser.add_argument('-l', '--logfile', help='log output to a specified file. default: no log to file')
 args = parser.parse_args()
 if args.debug is True:
     console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
     log_console = logging.StreamHandler()
     log.addHandler(log_console)
     log_console.setFormatter(console_format)
-if args.logfile is not None:
-    log_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
-    log_fileh = logging.FileHandler(args.logfile)
-    log.addHandler(log_fileh)
-    log_fileh.setFormatter(log_format)
-if args.debug is False and args.logfile is None:
-    log.addHandler(logging.NullHandler())
+log_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
+log_fileh = logging.FileHandler(cfg.config.get('logs', 'tv_transcoder')
+log.addHandler(log_fileh)
+log_fileh.setFormatter(log_format)
 if args.verbose:
     if args.verbose == 1:
         log.setLevel(logging.WARNING)
@@ -52,7 +46,7 @@ if args.verbose:
     elif args.verbose >= 3:
         log.setLevel(logging.DEBUG)
     else:
-        log.setLevel(logging.ERROR)
+        log.setLevel(logging.INFO)
 
 
 def main():
@@ -88,7 +82,7 @@ def main():
         crf=21:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44 \
         -c:a aac -ac 2'
         video_transcode(vid, ffmpeg_opstring)
-        exit(0)
+    log.info('Galaxymedia TV Transcoder script complete.')
 
 
 if __name__ == '__main__':

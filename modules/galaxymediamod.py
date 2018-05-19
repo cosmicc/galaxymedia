@@ -35,7 +35,6 @@ def video_transcode(in_file, ffmpeg_options):
     if not is_dirwritable(trans_dir):
         log.error(f'Local transcode directory [{trans_dir}] is not writable. Exiting.')
         exit(1)
-    print(diskspace(trans_dir)['GBfree'])
     if diskspace(trans_dir)['GBfree'] < 20:
         log.error(f'Local drive transcode dir [{trans_dir}] is under 20 Gig. Exiting.')
         exit(1)
@@ -48,7 +47,7 @@ def video_transcode(in_file, ffmpeg_options):
     if not os.access(in_file, os.R_OK):
          log.error(f'Permissions: Source video file needs to have read access. Exiting.')
          exit(1)
-    log.info(f'Copying video file to local transcode directory {trans_dir}')
+    log.debug(f'Copying video file to local transcode directory {trans_dir}')
     new_trans_file = f'{trans_dir}/{file_name(in_file)}'
     try:
         copyfile(in_file,new_trans_file)
@@ -59,13 +58,14 @@ def video_transcode(in_file, ffmpeg_options):
     post_trans_file = f'{trans_dir}/{file_name_noext(new_trans_file)}.trans.mp4'
     ffmpeg_options = f'-v quiet -stats -loglevel fatal -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options))
-    log.info(f'Starting transcode on video file [{file_name(new_trans_file)}]')
+    log.debug(f'Starting transcode on video file [{file_name(new_trans_file)}]')
     start_time = datetime.now()
     try:
         ffmpeg.run()
     except:
         log.warning(f'Transcode failed for file {file_name(in_file)}. Adding to failed transcode log.')
-        ### ADD FILE TO FAILED TRANS LOG
+        with open(cfg.config.get('logs', 'failed_transcode'), "a") as logfile:
+            logfile.write(in_file)
         if os.path.isfile(new_trans_file):
             os.remove(new_trans_file)
         if os.path.isfile(post_trans_file):
@@ -74,16 +74,19 @@ def video_transcode(in_file, ffmpeg_options):
     else:
         end_time = datetime.now()
         elapsed = elapsedTime(start_time, end_time)
-        log.info(f'FFmpeg transcode completed successfully. Elapsed: {elapsed}')
+        log.info(f'FFmpeg transcode completed successfully. \
+        [{int(os.path.getsize(new_trans_file)/1000000)}>{int(os.path.getsize(post_trans_file)/1000000)}] Elapsed: {elapsed}')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
             log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
-            ### ADD FILE TO CHECK TRANS LOG
+            with open(cfg.config.get('logs', 'check_transcode'), "a") as logfile:
+                logfile.write(f'{in_file}  [{int(os.path.getsize(new_trans_file)/1000000)} > \
+                                {int(os.path.getsize(post_trans_file)/1000000)})]')
             if os.path.isfile(new_trans_file):
                 os.remove(new_trans_file)
             if os.path.isfile(post_trans_file):
                 os.remove(post_trans_file)
             return False
-        log.info(f'Replacing original video with newly transcoded video [{file_name(new_trans_file)}]')
+        log.debug(f'Replacing original video with newly transcoded video [{file_name(new_trans_file)}]')
         try:
             os.remove(in_file)
         except:
@@ -98,7 +101,7 @@ def video_transcode(in_file, ffmpeg_options):
             else:
                 os.remove(post_trans_file)
                 os.remove(new_trans_file)
-                log.info(f'Replaced original video file with transcoded video {file_name(in_file)}')
+                log.debug(f'Replaced original video file with transcoded video {file_name(in_file)}')
                 return True
 
 
