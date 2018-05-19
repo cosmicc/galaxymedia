@@ -77,8 +77,18 @@ def main():
     for vid in transvids:
         log.info(f'Determining ffmpeg settings for video {file_name(vid)}')
         vinfo = video_info(vid)
-        ffmpeg_opstring = f'-i {in_file}'
-
+        ffmpeg_opstring = ''
+        if vinfo['stream0']['codec_type'] != 'video':
+            log.error(f'Stream0 in video file is not a video stream. Exiting.')
+        if vinfo['stream0']["height"] == "na" or not vinfo['stream0']["height"]:
+            log.error(f'Could not determine height of video stream. Exiting')
+        if int(vinfo['stream0']["height"]) > 730:
+            ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
+        ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
+        crf=21:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44 \
+        -c:a aac -ac 2'
+        video_transcode(vid, ffmpeg_opstring)
+        exit(0)
 
 
 if __name__ == '__main__':

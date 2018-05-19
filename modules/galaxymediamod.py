@@ -5,12 +5,14 @@
 """
 
 import os
+import stat
 import subprocess
 import logging
 import json
 from urllib.request import urlopen
 from urllib.parse import urlparse
 from datetime import datetime
+from shutil import copyfile
 
 import ffmpy
 import publicsuffix
@@ -28,17 +30,76 @@ plextoken = cfg.config.get('plex', 'token')
 
 
 def video_transcode(in_file, ffmpeg_options):
-    log.info(f'Starting ffmpeg transcode on video {file_name(in_file)}')
-    transdir = cfg.config.get('directories', 'local_transcode')
-    if not is_dirwritable(transdir):
-        log.error(f'Local transcode directory [{transdir}] is not writable. Exiting.')
-    if not os.path.is_file(in_file):
-        log.error(f'Error accessing video file for transcode {in_file}. Exiting.')
-    ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options)
+    log.debug(f'Starting video_transcode function on {in_file}')
+    trans_dir = cfg.config.get('directories', 'local_transcode')
+    if not is_dirwritable(trans_dir):
+        log.error(f'Local transcode directory [{trans_dir}] is not writable. Exiting.')
+        exit(1)
+    print(diskspace(trans_dir)['GBfree'])
+    if diskspace(trans_dir)['GBfree'] < 20:
+        log.error(f'Local drive transcode dir [{trans_dir}] is under 20 Gig. Exiting.')
+        exit(1)
+    if not os.path.isfile(in_file):
+        log.error(f'Cannot find source video file for transcode {in_file}. Exiting.')
+        exit(1)
+    if not os.access(in_file, os.W_OK):
+        log.error(f'Permissions: Source video file needs to have write access to be replaced. Exiting.')
+        exit(1)
+    if not os.access(in_file, os.R_OK):
+         log.error(f'Permissions: Source video file needs to have read access. Exiting.')
+         exit(1)
+    log.info(f'Copying video file to local transcode directory {trans_dir}')
+    new_trans_file = f'{trans_dir}/{file_name(in_file)}'
+    try:
+        copyfile(in_file,new_trans_file)
+    except:
+        log.error(f'Error copying file {in_file} to local trans dir {trans_dir}')
+        exit(1)
+    log.debug(f'File copy complete {in_file} > {new_trans_file}')
+    post_trans_file = f'{trans_dir}/{file_name_noext(new_trans_file)}.trans.mp4'
+    ffmpeg_options = f'-v quiet -stats -loglevel fatal -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
+    ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options))
+    log.info(f'Starting transcode on video file [{file_name(new_trans_file)}]')
+    start_time = datetime.now()
     try:
         ffmpeg.run()
     except:
-        pass
+        log.warning(f'Transcode failed for file {file_name(in_file)}. Adding to failed transcode log.')
+        ### ADD FILE TO FAILED TRANS LOG
+        if os.path.isfile(new_trans_file):
+            os.remove(new_trans_file)
+        if os.path.isfile(post_trans_file):
+            os.remove(post_trans_file)
+        return False
+    else:
+        end_time = datetime.now()
+        elapsed = elapsedTime(start_time, end_time)
+        log.info(f'FFmpeg transcode completed successfully. Elapsed: {elapsed}')
+        if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
+            log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
+            ### ADD FILE TO CHECK TRANS LOG
+            if os.path.isfile(new_trans_file):
+                os.remove(new_trans_file)
+            if os.path.isfile(post_trans_file):
+                os.remove(post_trans_file)
+            return False
+        log.info(f'Replacing original video with newly transcoded video [{file_name(new_trans_file)}]')
+        try:
+            os.remove(in_file)
+        except:
+            log.error(f'Error removing source video file {in_file}')
+            exit(1)
+        else:
+            try:
+                copyfile(post_trans_file, f'{file_dir(in_file)}/{file_name(post_trans_file})}')
+            except:
+                log.error(f'Error copying file {post_trans_file} > {in_file}')
+                exit(1)
+            else:
+                os.remove(post_trans_file)
+                os.remove(new_trans_file)
+                log.info(f'Replaced original video file with transcoded video {file_name(in_file)}')
+                return True
 
 
 def video_info(in_file):

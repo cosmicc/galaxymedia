@@ -3,7 +3,4 @@
 import sys
 from modules.galaxymediamod import *
 
-info = video_info(sys.argv[1])
-print(info)
-print(info['stream0']['codec_type'])
-
+video_transcode('/mnt/incoming/test.mp4', '-sn')
