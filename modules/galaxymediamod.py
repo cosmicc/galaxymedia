@@ -131,6 +131,7 @@ def video_info(in_file,raw=False):
         info['stream'+str(stream)] = {'codec_type': mapvinfo(ffinfo, ["streams",stream,"codec_type"])}
         if mapvinfo(ffinfo, ["streams",stream,"codec_type"]) != 'data':
             info['stream'+str(stream)].update({'codec_name': mapvinfo(ffinfo, ["streams",stream,"codec_name"])})
+            info['stream'+str(stream)].update({'codec_name_long': mapvinfo(ffinfo, ["streams",stream,"codec_long_name"])})
         if mapvinfo(ffinfo, ["streams",stream,"codec_type"]) == 'video':
             info['stream'+str(stream)].update({'width': mapvinfo(ffinfo, ["streams",stream,"width"])})
             info['stream'+str(stream)].update({'height': mapvinfo(ffinfo, ["streams",stream,"height"])})
