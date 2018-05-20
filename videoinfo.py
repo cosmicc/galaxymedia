@@ -46,14 +46,6 @@ MGT = Fore.MAGENTA
 GRN = Fore.GREEN
 RST = Fore.RESET
 
-def fbits(bits):
-    if bits != 'N/A':
-        nbr = int(int(bits) / 1000)
-        nbr = '{:,d}'.format(nbr)
-        return nbr + ' Kb'
-    else:
-        return 'N/A'
-
 def print_stream(vinfo, stream):
     print(f'{CYN}[{YEL}Stream {int(stream+1)}{CYN}]')
     print(f'{CYN}Codec Type: {YEL}{vinfo[f"stream{stream}"]["codec_type"].capitalize()}')
@@ -69,11 +61,18 @@ def print_stream(vinfo, stream):
         else:
             vmode = ''
         print(f'{CYN}Resolution: {YEL}{vinfo[f"stream{stream}"]["width"]}{GRN}x{YEL}{vinfo[f"stream{stream}"]["height"]}{GRN}{vmode}')
-        print(f'{CYN}Video Bit Rate: {YEL}{fbits(vinfo[f"stream{stream}"]["bit_rate"])}')
+        print(f'{CYN}Video Bit Rate: {YEL}{format_size(vinfo[f"stream{stream}"]["bit_rate"])}')
         print(f'{CYN}Aspect Ratio: {YEL}{vinfo[f"stream{stream}"]["aspect_ratio"]}')
         print(f'{CYN}Level: {YEL}{vinfo[f"stream{stream}"]["level"]}')
     elif vinfo[f"stream{stream}"]["codec_type"] == "audio":
-        pass
+        print(f'{CYN}Audio Bit Rate: {YEL}{format_size(vinfo[f"stream{stream}"]["bit_rate"])}')
+        print(f'{CYN}Sample Rate: {YEL}{vinfo[f"stream{stream}"]["sample_rate"]}')
+        print(f'{CYN}Audio Channels: {YEL}{vinfo[f"stream{stream}"]["channels"]}')
+        print(f'{CYN}Channel Layout: {YEL}{vinfo[f"stream{stream}"]["channel_layout"]}')
+        print(f'{CYN}Language: {YEL}{vinfo[f"stream{stream}"]["language"].upper()}')
+    elif vinfo[f"stream{stream}"]["codec_type"] == "subtitle":
+        print(f'{CYN}Title: {YEL}{vinfo[f"stream{stream}"]["title"]}')
+        print(f'{CYN}Language: {YEL}{vinfo[f"stream{stream}"]["language"].upper()}')
 
 
 def main():
@@ -95,7 +94,8 @@ def main():
     print(f'{CYN}Format: {YEL}{vinfo["format_long"]}')
     print(f'{CYN}Streams: {YEL}{vinfo["streams"]}')
     print(f'{CYN}Duration: {YEL}{vinfo["duration"]}')
-    print(f'{CYN}Total Bit Rate: {YEL}{fbits(vinfo["bit_rate"])}')
+    print(f'{CYN}Total Bit Rate: {YEL}{format_size(vinfo["bit_rate"])}')
+    print(f'{CYN}File Size: {YEL}{format_size(os.path.getsize(in_file))}')
     for stream in range(int(vinfo["streams"])):
         print(' ')
         print_stream(vinfo, stream)

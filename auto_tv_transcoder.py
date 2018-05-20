@@ -65,13 +65,13 @@ def main():
         vinfo = video_info(vid)
         ffmpeg_opstring = ''
         if vinfo['stream0']['codec_type'] != 'video':
-            log.error(f'Stream0 in video file is not a video stream. Exiting.')
+            log.error(f'Stream0 in video file is not a video stream. [{vid}] Exiting.')
         if vinfo['stream0']["height"] == "na" or not vinfo['stream0']["height"]:
-            log.error(f'Could not determine height of video stream. Exiting')
+            log.error(f'Could not determine height of video stream. [{vid}] Exiting')
         if int(vinfo['stream0']["height"]) > 730:
             ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
         ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
-        crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44 \
+        crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
         -c:a aac -ac 2'
         video_transcode(vid, ffmpeg_opstring)
     log.info('Galaxymedia TV Transcoder script complete.')

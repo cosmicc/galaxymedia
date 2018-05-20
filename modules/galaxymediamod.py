@@ -110,6 +110,8 @@ def mapvinfo(ffinfo, query):
             return ffinfo[query[0]][query[1]]
         elif len(query) == 3:
             return ffinfo[query[0]][query[1]][query[2]]
+        elif len(query) == 4:
+            return ffinfo[query[0]][query[1]][query[2]][query[3]]
     except KeyError:
         return 'N/A'
 
@@ -143,6 +145,12 @@ def video_info(in_file,raw=False):
         elif mapvinfo(ffinfo, ["streams",stream,"codec_type"]) == 'audio':
             info['stream'+str(stream)].update({'channels': mapvinfo(ffinfo, ["streams",stream,"channels"])})
             info['stream'+str(stream)].update({'bit_rate': mapvinfo(ffinfo, ["streams",stream,"bit_rate"])})
+            info['stream'+str(stream)].update({'channel_layout': mapvinfo(ffinfo, ["streams",stream,"channel_layout"])})
+            info['stream'+str(stream)].update({'language': mapvinfo(ffinfo, ["streams",stream,"tags","language"])})
+            info['stream'+str(stream)].update({'sample_rate': mapvinfo(ffinfo, ["streams",stream,"sample_rate"])})
+        elif mapvinfo(ffinfo, ["streams",stream,"codec_type"]) == 'subtitle':
+            info['stream'+str(stream)].update({'language': mapvinfo(ffinfo, ["streams",stream,"tags","language"])})
+            info['stream'+str(stream)].update({'title': mapvinfo(ffinfo, ["streams",stream,"tags","title"])})
     return info
 
 
@@ -203,8 +211,45 @@ def video_isinteg(in_file):
         return True
 
 
+def format_size(num):
+    if num == 'N/A':
+        return 'N/A'
+    num = int(num)
+    if num < 1000:
+        return f'{commafy(num)} Bytes'
+    if num >= 1000 and num < 100000:
+        return f'{commafy(KB(num))} KB'
+    if num >= 100000 and num < 10000000:
+        return f'{commafy(KB(num))} KB ({MB(num)} MB)'
+    if num >= 10000000 and num < 100000000:
+        return f'{commafy(MB(num))} MB'
+    if num >= 100000000 and num < 10000000000:
+        return f'{commafy(MB(num))} MB ({GB(num)}) GB'
+    if num >= 10000000000:
+        return f'{commafy(GB(num))} GB'
+
+
+def commafy(num):
+    if num == 'N/A':
+        return 'N/A'
+    if isinstance(num, float):
+        numsplit = str(num).split('.')
+        newnum = '{:,d}'.format(int(numsplit[0]))
+        return f'{newnum}.{numsplit[1]}'
+    return '{:,d}'.format(int(num))
+
+
+def GB(in_bytes):
+    return float_trunc_2dec(in_bytes / 1000000000)
+
+
 def MB(in_bytes):
-    return float_trunc_1dec(in_bytes / 1000000)
+    return float_trunc_2dec(in_bytes / 1000000)
+
+
+def KB(in_bytes):
+    return float_trunc_1dec(in_bytes / 1000)
+
 
 def file_name(in_file):
     in_file_split = in_file.split('/')

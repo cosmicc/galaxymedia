@@ -11,6 +11,7 @@ from colorama import Fore, Back, Style
 
 import modules.loadconfig as cfg
 import modules.processlock as processlock
+from modules.galaxymediamod import *
 
 __author__ = "Ian Perry"
 __copyright__ = "Copyright 2018, Galaxy Media"
@@ -33,12 +34,15 @@ parser.add_argument('video_file', action='store', help='Video file to transcode'
 video_group = parser.add_argument_group('Video Options')
 video_group.add_argument('-h265', action='store_true', help='Convert video to HEVC h265')
 video_group.add_argument('-2pass', action='store_true', help='Use 2 Pass h265 encoding (1 Pass default)')
-video_group.add_argument('-720', action='store_true', help='Resize video to 720p')
-video_group.add_argument('-1080', action='store_true', help='Resize video to 1080p')
-video_group.add_argument('-level', action='store', help='h265 Quality level [0-51] 0=lossless 21=default')
-video_group.add_argument('-speed', action='store', choices=[], help='Encoding speed (Affects overall quality) ultrafast=default')
-parser.add_argument('-nosub', action='store_true', help='Remove subtitles from video')
-parser.add_argument('-aac', action='store_true', help='Convert audio to AAC 2 channel')
+video_group.add_argument('-r720', action='store_true', help='Resize video to 720p')
+video_group.add_argument('-r1080', action='store_true', help='Resize video to 1080p')
+video_group.add_argument('-level', action='store', default=21, choices=range(52), help='h265 Quality level [0-51] 0=lossless 21=default')
+video_group.add_argument('-speed', action='store', default='ultrafast', choices=["ultrafast", "superfast", "veryfast", "faster", "fast", \
+        "medium", "slow", "slower", "veryslow"], help='Encoding speed (Affects overall quality) ultrafast=default')
+audio_group = parser.add_argument_group('Audio Options')
+audio_group.add_argument('-aac', action='store_true', help='Convert audio to AAC 2 channel')
+subtitle_group = parser.add_argument_group('Subtitle Options')
+subtitle_group.add_argument('-nosub', action='store_true', help='Remove subtitles from video')
 parser.add_argument('-v', '--verbose', action='count', help='logging verbosity level')
 parser.add_argument('-l', '--logfile', help='log output to a specified file. default: no log to file')
 args = parser.parse_args()
@@ -68,7 +72,7 @@ if args.logfile is not None:
 
 def main():
     processlock.lock()
-    in_file = os.path.abspath(video_file)
+    in_file = os.path.abspath(args.video_file)
     if not os.path.isfile(in_file):
         log.error(f'Video file does not exist. Exiting [{in_file}]')
         exit(1)
@@ -79,6 +83,11 @@ def main():
 
     ### CHECK IF VIDEO IS ALREADY H265
     print('This is is {}fantastic {}colors{}'.format(Fore.YELLOW, Fore.CYAN, Fore.RESET))
+    if args.r720 and args.r1080:
+        log.error('You can not specify 720p and 1080p resize at the same time. Exiting.')
+        print('You can not specify 720p and 1080p resize at the same time. Exiting.')
+        exit(1)
+
 
 
 if __name__ == '__main__':

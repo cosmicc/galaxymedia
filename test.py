@@ -4,6 +4,8 @@ import sys
 import os
 from modules.galaxymediamod import *
 
-#print(MB(os.path.getsize('/mnt/incoming/test.mp4')))
+#sizer = os.path.getsize(sys.argv[1])
 
-print(os.path.abspath(sys.argv[1]))
+print(format_size(sys.argv[1]))
+
+#print(os.path.abspath(sys.argv[1]))
