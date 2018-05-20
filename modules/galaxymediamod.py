@@ -29,7 +29,7 @@ cfg.config.get('plex', 'comedy_section'), 'ufc': cfg.config.get('plex', 'ufc_sec
 plextoken = cfg.config.get('plex', 'token')
 
 
-def video_transcode(in_file, ffmpeg_options):
+def video_transcode(in_file, ffmpeg_options, norep=False, console=False):
     log.debug(f'Starting video_transcode function on {in_file}')
     trans_dir = cfg.config.get('directories', 'local_transcode')
     if not is_dirwritable(trans_dir):
@@ -76,8 +76,12 @@ def video_transcode(in_file, ffmpeg_options):
         elapsed = elapsedTime(end_time, start_time)
         vinfo = video_info(new_trans_file)
         log.info(f'Transcode complete [{int(MB(os.path.getsize(new_trans_file)))}>{int(MB(os.path.getsize(post_trans_file)))}] {vinfo["duration"]} {elapsed} [{file_name(new_trans_file)}]')
+        if console:
+            print(f'Transcode complete [{int(MB(os.path.getsize(new_trans_file)))}>{int(MB(os.path.getsize(post_trans_file)))}] {vinfo["duration"]} {elapsed} [{file_name(new_trans_file)}]\n')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
             log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
+            if console:
+                print(f'{Fore.RED}Transcoded file is significantly larger then original. Adding to check transcode log.{Fore.RESET}\n')
             with open(cfg.config.get('logs', 'check_transcode'), "a") as logfile:
                 logfile.write(f'[{int(MB(os.path.getsize(new_trans_file)))} > {int(MB(os.path.getsize(post_trans_file)))})] {in_file}')
             if os.path.isfile(new_trans_file):
@@ -87,7 +91,8 @@ def video_transcode(in_file, ffmpeg_options):
             return False
         log.debug(f'Replacing original video with newly transcoded video [{file_name(new_trans_file)}]')
         try:
-            os.remove(in_file)
+            if not norep:
+                os.remove(in_file)
         except:
             log.error(f'Error removing source video file {in_file}')
             exit(1)

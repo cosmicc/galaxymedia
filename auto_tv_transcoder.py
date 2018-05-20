@@ -26,6 +26,7 @@ log = logging.getLogger()
 parser = argparse.ArgumentParser(prog=__progname__, description=__description__, epilog=__detaildesc__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
+parser.add_argument('--progress', action='store_true', help='Show encoding process to console')
 parser.add_argument('--debug', action='store_true', help='Debug mode logging to console')
 args = parser.parse_args()
 log.setLevel(logging.INFO)
@@ -63,7 +64,10 @@ def main():
     for vid in transvids:
         log.debug(f'Determining ffmpeg settings for video {file_name(vid)}')
         vinfo = video_info(vid)
-        ffmpeg_opstring = ''
+        if args.debug or args.progress:
+            ffmpeg_opstring = ''
+        else:
+            ffmpeg_opstring = '-nostats -hide_banner '
         for stmn in range(vinfo['streams']):
             if vinfo[f'stream{stmn}']['codec_type'] == 'video':
                 if vinfo[f'stream{stmn}']["width"] == "na" or not vinfo[f'stream{stmn}']["width"]:
@@ -71,7 +75,7 @@ def main():
                 if int(vinfo[f'stream{stmn}']["width"]) > 1290:
                     ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
                     ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
-                    crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
+                    preset=0:crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
                     -c:a aac -ac 2'
 
         video_transcode(vid, ffmpeg_opstring)
