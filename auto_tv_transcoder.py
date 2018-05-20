@@ -64,15 +64,16 @@ def main():
         log.debug(f'Determining ffmpeg settings for video {file_name(vid)}')
         vinfo = video_info(vid)
         ffmpeg_opstring = ''
-        if vinfo['stream0']['codec_type'] != 'video':
-            log.error(f'Stream0 in video file is not a video stream. [{vid}] Exiting.')
-        if vinfo['stream0']["height"] == "na" or not vinfo['stream0']["height"]:
-            log.error(f'Could not determine height of video stream. [{vid}] Exiting')
-        if int(vinfo['stream0']["height"]) > 730:
-            ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
-        ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
-        crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
-        -c:a aac -ac 2'
+        for stmn in range(vinfo['streams']):
+            if vinfo[f'stream{stmn}']['codec_type'] == 'video':
+                if vinfo[f'stream{stmn}']["width"] == "na" or not vinfo[f'stream{stmn}']["width"]:
+                    log.error(f'Could not determine width of video stream. [{vid}] Exiting')
+                if int(vinfo[f'stream{stmn}']["width"]) > 1290:
+                    ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
+                    ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
+                    crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
+                    -c:a aac -ac 2'
+
         video_transcode(vid, ffmpeg_opstring)
     log.info('Galaxymedia TV Transcoder script complete.')
 

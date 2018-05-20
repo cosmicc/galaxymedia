@@ -52,11 +52,11 @@ def print_stream(vinfo, stream):
     if vinfo[f"stream{stream}"]["codec_type"] != "data":
         print(f'{CYN}Codec Name: {YEL}{vinfo[f"stream{stream}"]["codec_name_long"]}')
     if vinfo[f"stream{stream}"]["codec_type"] == "video":
-        if int(vinfo["stream0"]['width']) < 1290 and int(vinfo["stream0"]['width']) > 1270:
+        if int(vinfo[f"stream{stream}"]['width']) < 1290 and int(vinfo[f"stream{stream}"]['width']) > 1270:
             vmode = ' [720p]'
-        elif int(vinfo["stream0"]['width']) < 1930 and int(vinfo["stream0"]['width']) > 1910:
+        elif int(vinfo[f"stream{stream}"]['width']) < 1930 and int(vinfo[f"stream{stream}"]['width']) > 1910:
             vmode = ' [1080p]'
-        elif int(vinfo["stream0"]['width']) < 3850 and int(vinfo["stream0"]['width']) > 3830:
+        elif int(vinfo[f"stream{stream}"]['width']) < 3850 and int(vinfo[f"stream{stream}"]['width']) > 3830:
             vmode = ' [4k]'
         else:
             vmode = ''
@@ -66,7 +66,7 @@ def print_stream(vinfo, stream):
         print(f'{CYN}Level: {YEL}{vinfo[f"stream{stream}"]["level"]}')
     elif vinfo[f"stream{stream}"]["codec_type"] == "audio":
         print(f'{CYN}Audio Bit Rate: {YEL}{format_size(vinfo[f"stream{stream}"]["bit_rate"])}')
-        print(f'{CYN}Sample Rate: {YEL}{vinfo[f"stream{stream}"]["sample_rate"]}')
+        print(f'{CYN}Sample Rate: {YEL}{commafy(vinfo[f"stream{stream}"]["sample_rate"])}')
         print(f'{CYN}Audio Channels: {YEL}{vinfo[f"stream{stream}"]["channels"]}')
         print(f'{CYN}Channel Layout: {YEL}{vinfo[f"stream{stream}"]["channel_layout"]}')
         print(f'{CYN}Language: {YEL}{vinfo[f"stream{stream}"]["language"].upper()}')
