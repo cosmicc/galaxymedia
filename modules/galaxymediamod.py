@@ -74,13 +74,11 @@ def video_transcode(in_file, ffmpeg_options):
     else:
         end_time = datetime.now()
         elapsed = elapsedTime(end_time, start_time)
-        log.info(f'FFmpeg transcode completed successfully. \
-        [{int(os.path.getsize(new_trans_file)/1000000)}>{int(os.path.getsize(post_trans_file)/1000000)}] Elapsed: {elapsed}')
+        log.info(f'Transcode complete.[{int(MB(os.path.getsize(new_trans_file)))}>{int(MB(os.path.getsize(post_trans_file)))}] {elapsed} [{file_name(new_trans_file)}]')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
             log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
             with open(cfg.config.get('logs', 'check_transcode'), "a") as logfile:
-                logfile.write(f'{in_file}  [{int(os.path.getsize(new_trans_file)/1000000)} > \
-                                {int(os.path.getsize(post_trans_file)/1000000)})]')
+                logfile.write(f'[{int(MB(os.path.getsize(new_trans_file)))} > {int(MB(os.path.getsize(post_trans_file)))})] {in_file}')
             if os.path.isfile(new_trans_file):
                 os.remove(new_trans_file)
             if os.path.isfile(post_trans_file):
@@ -105,45 +103,44 @@ def video_transcode(in_file, ffmpeg_options):
                 return True
 
 
-def video_info(in_file):
+def mapvinfo(ffinfo, query):
+    try:
+        if len(query) == 2:
+            return ffinfo[query[0]][query[1]]
+        elif len(query) == 3:
+            return ffinfo[query[0]][query[1]][query[2]]
+    except KeyError:
+        return 'N/A'
+
+
+def video_info(in_file,raw=False):
     info = {}
     ffprobe = ffmpy.FFprobe(global_options=("-loglevel quiet -sexagesimal -of json -show_format -show_streams", f'"{in_file}"'))
     stdout, stderr = ffprobe.run(stderr=subprocess.PIPE, stdout=subprocess.PIPE)
     ff0string = str(stdout, 'utf-8')
     ffinfo = json.loads(ff0string)
-    print(json.dumps(ffinfo, sort_keys=True, indent=4))
-    info['format'] = ffinfo["format"]["format_name"]
-    info['streams'] = ffinfo["format"]["nb_streams"]
-    info['format_long'] = ffinfo["format"]["format_long_name"]
-    duration = ffinfo["format"]["duration"].split('.')
+    if raw:
+        print(json.dumps(ffinfo, sort_keys=True, indent=4))
+    info['format'] = mapvinfo(ffinfo, ["format","format_name"])
+    info['streams'] = mapvinfo(ffinfo, ["format","nb_streams"])
+    info['format_long'] = mapvinfo(ffinfo, ["format","format_long_name"])
+    duration = mapvinfo(ffinfo, ["format","duration"]).split('.')
     info['duration'] = duration[0]
-    try:
-        info['bit_rate'] = ffinfo["format"]["bit_rate"]
-    except KeyError:
-        info['bit_rate'] = 'na'
-    print(in_file)
+    info['bit_rate'] = mapvinfo(ffinfo, ["format","bit_rate"])
     for stream in range(ffinfo["format"]["nb_streams"]):
-        info['stream'+str(stream)] = {'codec_type': ffinfo["streams"][stream]["codec_type"]}
-        if ffinfo["streams"][stream]["codec_type"] != 'data':
-            info['stream'+str(stream)].update({'codec_name': ffinfo["streams"][stream]["codec_name"]})
-        if ffinfo["streams"][stream]["codec_type"] == 'video':
-            info['stream'+str(stream)].update({'width': ffinfo["streams"][stream]["width"]})
-            info['stream'+str(stream)].update({'height': ffinfo["streams"][stream]["height"]})
-            info['stream'+str(stream)].update({'aspect_ratio': ffinfo["streams"][stream]["display_aspect_ratio"]})
-            try:
-                info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]["bit_rate"]})
-            except KeyError:
-                try:
-                    info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]['tags']["BPS"]})
-                except KeyError:
-                    info['stream'+str(stream)].update({'bit_rate': 'na'})
-            info['stream'+str(stream)].update({'level': ffinfo["streams"][stream]["level"]})
-        elif ffinfo["streams"][stream]["codec_type"] == 'audio':
-            info['stream'+str(stream)].update({'channels': ffinfo["streams"][stream]["channels"]})
-            try:
-                info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]["bit_rate"]})
-            except KeyError:
-                info['stream'+str(stream)].update({'bit_rate': 'na'})
+        info['stream'+str(stream)] = {'codec_type': mapvinfo(ffinfo, ["streams",stream,"codec_type"])}
+        if mapvinfo(ffinfo, ["streams",stream,"codec_type"]) != 'data':
+            info['stream'+str(stream)].update({'codec_name': mapvinfo(ffinfo, ["streams",stream,"codec_name"])})
+        if mapvinfo(ffinfo, ["streams",stream,"codec_type"]) == 'video':
+            info['stream'+str(stream)].update({'width': mapvinfo(ffinfo, ["streams",stream,"width"])})
+            info['stream'+str(stream)].update({'height': mapvinfo(ffinfo, ["streams",stream,"height"])})
+            info['stream'+str(stream)].update({'aspect_ratio': mapvinfo(ffinfo, ["streams",stream,"display_aspect_ratio"])})
+            info['stream'+str(stream)].update({'bit_rate': mapvinfo(ffinfo, ["streams",stream,"bit_rate"])})
+            #info['stream'+str(stream)].update({'bit_rate': ffinfo["streams"][stream]['tags']["BPS"]})
+            info['stream'+str(stream)].update({'level': mapvinfo(ffinfo, ["streams",stream,"level"])})
+        elif mapvinfo(ffinfo, ["streams",stream,"codec_type"]) == 'audio':
+            info['stream'+str(stream)].update({'channels': mapvinfo(ffinfo, ["streams",stream,"channels"])})
+            info['stream'+str(stream)].update({'bit_rate': mapvinfo(ffinfo, ["streams",stream,"bit_rate"])})
     return info
 
 
@@ -203,6 +200,9 @@ def video_isinteg(in_file):
             os.remove(trans_file)
         return True
 
+
+def MB(in_bytes):
+    return float_trunc_1dec(in_bytes / 1000000)
 
 def file_name(in_file):
     in_file_split = in_file.split('/')
@@ -391,6 +391,17 @@ def elapsedTime(stop_time, start_time,lshort=False):
     else:
         log.error('Elapsed time function failed. Could not convert.')
         return('Error')
+
+
+def float_trunc_1dec(num):
+    try:
+       tnum = num // 0.1 / 10
+    except:
+       log.exception('Error truncating float to 1 decimal: {}'.format(num))
+       return False
+    else:
+       return tnum
+
 
 def float_trunc_2dec(num):
     try:

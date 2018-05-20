@@ -46,7 +46,7 @@ def main():
     log.debug('Starting Galaxymedia TV Transcoder')
     tv_dir = cfg.config.get('directories', 'tv_dir')
     daysback = int(cfg.config.get('general', 'tv_daysback'))
-    log.info(f'Compiling list of tv episodes to transcode on {tv_dir}')
+    log.debug(f'Compiling list of tv episodes to transcode on {tv_dir}')
     transvids = []
     numvids = 0
     days_ago = datetime.now() - timedelta(days=daysback)

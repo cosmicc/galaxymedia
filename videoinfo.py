@@ -44,17 +44,31 @@ def main():
     in_file = sys.argv[1]
     YEL = Fore.YELLOW
     CYN = Fore.CYAN
-    WHT = Fore.MAGENTA
+    WHT = Fore.WHITE
+    MGT = Fore.MAGENTA
+    GRN = Fore.GREEN
     RST = Fore.RESET
     if not os.path.isfile(in_file):
         log.error(f'File does not exist. {in_file}')
         exit(1)
     vinfo = video_info(in_file)
-    print(f'{WHT}Galaxy Media Video File Information:\n')
+    if int(vinfo["stream0"]['width']) < 1290 and int(vinfo["stream0"]['width']) > 1270:
+        vmode = ' [720p]'
+    elif int(vinfo["stream0"]['width']) < 1930 and int(vinfo["stream0"]['width']) > 1910:
+        vmode = ' [1080p]'
+    elif int(vinfo["stream0"]['width']) < 3850 and int(vinfo["stream0"]['width']) > 3830:
+        vmode = ' [4k]'
+    else:
+        vmode = ''
+    print(f'{GRN}Galaxy Media Video File Information:\n')
+    print(f'{CYN}Raw: {YEL}{file_name(in_file)}')
     print(f'{CYN}Filename: {YEL}{file_name_noext(in_file)}')
-    print(f'{CYN}Extension: {YEL}{file_ext(in_file)}\n')
-    print(f'{CYN}
+    print(f'{CYN}Extension: {YEL}{file_ext(in_file).upper()}\n')
+    print(f'{CYN}Format: {YEL}{vinfo["format_long"]}')
+    print(f'{CYN}Streams: {YEL}{vinfo["streams"]}')
 
+    print(f'{CYN}  ')
+    print(f'{CYN}Resolution: {YEL}{vinfo["stream0"]["width"]}{WHT}x{YEL}{vinfo["stream0"]["height"]}{GRN}{vmode}')
 
     print(f'{RST}')
 
