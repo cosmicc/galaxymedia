@@ -22,7 +22,9 @@ __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
-__progname__ = "server_maint"
+__progname__ = "server_maintenance"
+__description__ = "Server maintenance script"
+__detaildesc__ = "Performs OS updates, rootchecks, virus scan, and reboots if necessary"
 
 if cfg.hostname != 'mercury':
     check_drives = {
@@ -36,7 +38,7 @@ else:
         }
 
 log = logging.getLogger()
-parser = argparse.ArgumentParser(prog=__progname__)
+parser = argparse.ArgumentParser(prog=__progname__, description=__description__, epilog=__detaildesc__, formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 parser.add_argument('-q', '--quiet', action='store_true', help='supress logging output to console. default: error logging')
 parser.add_argument('-v', '--verbose', action='store_true', help='verbose output (warning)')

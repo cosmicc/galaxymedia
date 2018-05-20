@@ -31,7 +31,19 @@ logging_group.add_argument('--debug', action='store_true', help='Debug mode logg
 parser.add_argument('-v', '--verbose', action='count', help='logging verbosity level')
 parser.add_argument('-l', '--logfile', help='log output to a specified file. default: no log to file')
 args = parser.parse_args()
-if args.debug is True:
+if not args.debug and args.logfile is None:
+    log.addHandler(logging.NullHandler())
+if args.verbose:
+    if args.verbose == 1:
+        log.setLevel(logging.WARNING)
+    elif args.verbose == 2:
+        log.setLevel(logging.INFO)
+    elif args.verbose >= 3:
+        log.setLevel(logging.DEBUG)
+    else:
+        log.setLevel(logging.ERROR)
+if args.debug:
+    log.setLevel(logging.DEBUG)
     console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
     log_console = logging.StreamHandler()
     log.addHandler(log_console)
@@ -41,17 +53,6 @@ if args.logfile is not None:
     log_fileh = logging.FileHandler(args.logfile)
     log.addHandler(log_fileh)
     log_fileh.setFormatter(log_format)
-if args.debug is False and args.logfile is None:
-    log.addHandler(logging.NullHandler())
-    if args.verbose:
-        if args.verbose == 1:
-            log.setLevel(logging.WARNING)
-        elif args.verbose == 2:
-            log.setLevel(logging.INFO)
-        elif args.verbose >= 3:
-            log.setLevel(logging.DEBUG)
-        else:
-            log.setLevel(logging.ERROR)
 
 
 def main():

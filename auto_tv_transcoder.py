@@ -1,6 +1,6 @@
 #!/usr/bin/python3.6
 """
- Galaxymedia TV Episode Transcoder
+ Galaxymedia Auto TV Episode Transcoder
 
 """
 import os
@@ -18,8 +18,8 @@ __license__ = "GPL"
 __version__ = "1.0.0"
 __maintainer__ = "Ian Perry"
 __email__ = "ianperry99@gmail.com"
-__progname__ = "tv_transcoder"
-__description__ = "Galaxymedia TV Episode Transcoder"
+__progname__ = "auto_tv_transcoder"
+__description__ = "Galaxymedia Auto TV Episode Transcoder"
 __detaildesc__ = "Settings in config file /etc/galaxymediatools.cfg"
 
 log = logging.getLogger()
