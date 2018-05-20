@@ -29,6 +29,7 @@ parser = argparse.ArgumentParser(prog=__progname__, description=__description__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 parser.add_argument('--debug', action='store_true', help='Debug mode logging to console')
+parser.add_argument('-r', '--raw', action='store_true', help='Include raw video info')
 parser.add_argument('video_file', action='store', help='video file to process')
 args = parser.parse_args()
 if args.debug is True:
@@ -81,7 +82,10 @@ def main():
     if not os.path.isfile(in_file):
         log.error(f'File does not exist. {in_file}')
         exit(1)
-    vinfo = video_info(in_file)
+    if args.raw:
+        vinfo = video_info(in_file,raw=True)
+    else:
+        vinfo = video_info(in_file)
     print(f'{GRN}Galaxy Media Video File Information:\n')
     print(f'{CYN}Raw: {YEL}{in_file}')
     print(f'{CYN}Directory: {YEL}{file_dir(in_file)}')
