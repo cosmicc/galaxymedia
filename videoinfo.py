@@ -78,7 +78,7 @@ def print_stream(vinfo, stream):
 
 def main():
     processlock.lock()
-    in_file = args.video_file
+    in_file = os.path.abspath(args.video_file)
     if not os.path.isfile(in_file):
         log.error(f'File does not exist. {in_file}')
         exit(1)

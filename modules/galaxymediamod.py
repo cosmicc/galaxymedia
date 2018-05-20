@@ -74,7 +74,8 @@ def video_transcode(in_file, ffmpeg_options):
     else:
         end_time = datetime.now()
         elapsed = elapsedTime(end_time, start_time)
-        log.info(f'Transcode complete.[{int(MB(os.path.getsize(new_trans_file)))}>{int(MB(os.path.getsize(post_trans_file)))}] {elapsed} [{file_name(new_trans_file)}]')
+        vinfo = video_info(new_trans_file)
+        log.info(f'Transcode complete.[{int(MB(os.path.getsize(new_trans_file)))}>{int(MB(os.path.getsize(post_trans_file)))}] {vinfo["duration"]} {elapsed} [{file_name(new_trans_file)}]')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
             log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
             with open(cfg.config.get('logs', 'check_transcode'), "a") as logfile:
