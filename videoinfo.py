@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(prog=__progname__, description=__description__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 parser.add_argument('--debug', action='store_true', help='Debug mode logging to console')
-parser.add_argument('file', action='store', help='file to process')
+parser.add_argument('video_file', action='store', help='video file to process')
 args = parser.parse_args()
 if args.debug is True:
     console_format = logging.Formatter('%(asctime)s:[%(levelname)s]:%(name)s:%(message)s')
@@ -41,7 +41,7 @@ if args.debug is True:
 
 def main():
     processlock.lock()
-    in_file = sys.argv[1]
+    in_file = args.video_file
     YEL = Fore.YELLOW
     CYN = Fore.CYAN
     WHT = Fore.WHITE
