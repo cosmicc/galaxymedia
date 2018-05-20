@@ -53,7 +53,7 @@ def main():
     print(f'{WHT}Galaxy Media Video File Information:\n')
     print(f'{CYN}Filename: {YEL}{file_name_noext(in_file)}')
     print(f'{CYN}Extension: {YEL}{file_ext(in_file)}\n')
-    print(f'{CYN}
+    print(f'{CYN}Format: {YEL}{
 
 
     print(f'{RST}')

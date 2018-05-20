@@ -74,13 +74,12 @@ def video_transcode(in_file, ffmpeg_options):
     else:
         end_time = datetime.now()
         elapsed = elapsedTime(end_time, start_time)
-        log.info(f'FFmpeg transcode completed successfully. \
-        [{int(os.path.getsize(new_trans_file)/1000000)}>{int(os.path.getsize(post_trans_file)/1000000)}] Elapsed: {elapsed}')
+        log.info(f'Transcode complete. [{MB(os.path.getsize(new_trans_file))}>{MB(os.path.getsize(post_trans_file))}] {elapsed} {file_name(new_trans_file)}')
         if os.path.getsize(new_trans_file) + 100000000 < os.path.getsize(post_trans_file):
             log.info('Transcoded file is significantly larger then original. Adding to check transcode log.')
             with open(cfg.config.get('logs', 'check_transcode'), "a") as logfile:
-                logfile.write(f'{in_file}  [{int(os.path.getsize(new_trans_file)/1000000)} > \
-                                {int(os.path.getsize(post_trans_file)/1000000)})]')
+                logfile.write(f'{in_file}  [{MB(os.path.getsize(new_trans_file))} > \
+                                {MB(os.path.getsize(post_trans_file))})]')
             if os.path.isfile(new_trans_file):
                 os.remove(new_trans_file)
             if os.path.isfile(post_trans_file):
@@ -203,6 +202,9 @@ def video_isinteg(in_file):
             os.remove(trans_file)
         return True
 
+
+def MB(in_bytes):
+    return float_trunc_1dec(in_bytes / 1000000)
 
 def file_name(in_file):
     in_file_split = in_file.split('/')
@@ -391,6 +393,17 @@ def elapsedTime(stop_time, start_time,lshort=False):
     else:
         log.error('Elapsed time function failed. Could not convert.')
         return('Error')
+
+
+def float_trunc_1dec(num):
+    try:
+       tnum = num // 0.1 / 10
+    except:
+       log.exception('Error truncating float to 1 decimal: {}'.format(num))
+       return False
+    else:
+       return tnum
+
 
 def float_trunc_2dec(num):
     try:

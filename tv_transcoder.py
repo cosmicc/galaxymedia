@@ -46,7 +46,7 @@ def main():
     log.debug('Starting Galaxymedia TV Transcoder')
     tv_dir = cfg.config.get('directories', 'tv_dir')
     daysback = int(cfg.config.get('general', 'tv_daysback'))
-    log.info(f'Compiling list of tv episodes to transcode on {tv_dir}')
+    log.debug(f'Compiling list of tv episodes to transcode on {tv_dir}')
     transvids = []
     numvids = 0
     days_ago = datetime.now() - timedelta(days=daysback)
@@ -54,7 +54,7 @@ def main():
         for file_ in files:
             videofile = os.path.join(root, file_)
             filetime = datetime.fromtimestamp(os.path.getctime(videofile))
-            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 1000000000 \
+            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 3000000000 \
             and filetime < days_ago:
                 transvids.append(videofile)
                 numvids += 1
