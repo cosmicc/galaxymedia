@@ -1,3 +1,8 @@
 #!/bin/bash
 
+if [ "$1" == "" ]; then
+echo "Python script not specified.  py <python_script> (do not include the .py)"
+exit
+fi
+
 /usr/bin/python3.6 ./$1.py $2 $3 $4 $5 $6 $7 $8 $9
