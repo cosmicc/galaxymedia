@@ -31,11 +31,12 @@ args = parser.parse_args()
 def main():
     pscript = os.path.abspath(args.python_script)
     if args.high:
-        subprocess.Popen(['nohup','nice','-n-1',f'{pscript}','>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
+        subprocess.Popen(['nohup','nice','-n-1','/usr/bin/python3.6',pscript], stdout=subprocess.PIPE)
     elif args.low:
-        subprocess.Popen(['nohup','nice','-n15',f'{pscript}','>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
+        subprocess.Popen(['nohup','nice','-n15','/usr/bin/python3.6',pscript], stdout=subprocess.PIPE)
     else:
-        subprocess.Popen(['nohup',pscript,'>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
+        subprocess.Popen(['nohup', pscript], stdout=subprocess.PIPE)
+        #subprocess.Popen(['nohup',pscript,'>/opt/galaxymedia/debug.log','2>&1','&'], stdout=subprocess.PIPE)
     exit(0)
 
 
