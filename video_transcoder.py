@@ -8,6 +8,7 @@ import logging
 import argparse
 
 from colorama import Fore, Back, Style
+import daemon
 
 import modules.loadconfig as cfg
 import modules.processlock as processlock
@@ -157,4 +158,5 @@ def main():
         print(f'{RED}Transcode Warnings/Errors. {CYN}[{YEL}{file_name(in_file)}{CYN}]{RST}\n')
 
 if __name__ == '__main__':
+    
     main()
