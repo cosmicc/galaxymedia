@@ -73,56 +73,88 @@ if args.logfile is not None:
 pdict = {'ultrafast': 0, 'superfast': 1, 'veryfast': 2, 'faster': 3, 'fast': 4, 'medium': 5, \
               'slow': 6, 'slower': 7, 'veryslow': 8}
 
+YEL = Fore.YELLOW
+CYN = Fore.CYAN
+WHT = Fore.WHITE
+MGT = Fore.MAGENTA
+GRN = Fore.GREEN
+RED = Fore.RED
+RST = Fore.RESET
+
+
 def main():
     processlock.lock()
     in_file = os.path.abspath(args.video_file)
+    vinfo = video_info(in_file)
+    duration = f'{YEL}{vinfo["duration"]}{RST}'
+    vbitrate = f'{YEL}{format_size(int(vinfo["bit_rate"]))}{RST}'
+    for stream in range(int(vinfo['streams'])):
+        if vinfo[f"stream{stream}"]["codec_type"] == "video":
+            ctype = f'{YEL}{vinfo[f"stream{stream}"]["codec_name"]}{RST}'
+            if int(vinfo[f"stream{stream}"]['width']) < 1290 and int(vinfo[f"stream{stream}"]['width']) > 1270:
+                vmode = f'{GRN}[720p]{RST}'
+            elif int(vinfo[f"stream{stream}"]['width']) < 1930 and int(vinfo[f"stream{stream}"]['width']) > 1910:
+                vmode = f'{GRN}[1080p]{RST}'
+            elif int(vinfo[f"stream{stream}"]['width']) < 3850 and int(vinfo[f"stream{stream}"]['width']) > 3830:
+                vmode = f'{GRN}[4k]{RST}'
+            else:
+                vmode = ''
+            resolution = f'{YEL}{vinfo[f"stream{stream}"]["width"]}{GRN}x{YEL}{vinfo[f"stream{stream}"]["height"]} {vmode}{RST} '
+        if vinfo[f"stream{stream}"]["codec_type"] == "audio":
+            atype = f'{YEL}{vinfo[f"stream{stream}"]["codec_name"]} {vinfo[f"stream{stream}"]["channels"]}ch{RST}'
+
     if args.r720 and args.r1080:
         log.error('You can not specify 720p and 1080p resize at the same time. Exiting.')
         print('You can not specify 720p and 1080p resize at the same time. Exiting.')
         exit(1)
     if not os.path.isfile(in_file):
-        log.error(f'Video file does not exist. Exiting [{in_file}]')
+        log.error(f'Video file does not exist. Exiting. [{in_file}]')
+        print(f'Video file does not exist. Exiting. [{in_file}]')
         exit(1)
     # check to see if anything to do:
-    if not args.h265 and not args.aac and not args.nosub:
-        log.error(f'No arguments. Nothing to do to video file. Exiting [{in_file}]')
+    if not args.h265 and not args.aac and not args.nosubs:
+        log.error(f'No arguments. Nothing to do to video file. Exiting. [{in_file}]')
+        print(f'No arguments. Nothing to do to video file. Exiting. [{in_file}]')
         exit(0)
     if not video_isinteg(in_file):
-        log.error(f'Video file failed integrity check. Exiting [{in_file}]')
+        log.error(f'Video file failed integrity check. Exiting. [{in_file}]')
+        print(f'Video file failed integrity check. Exiting. [{in_file}]')
         exit(2)
     if args.quiet:
-        ffmpegss = f'-nostats -hide_banner -i "{in_file}" '
+        ffmpegss = f'-nostats -hide_banner '
     else:
-        ffmpegss = f'-i "{in_file}" '
+        ffmpegss = ''
     # VIDEO OPTIONS
     if args.r720:
         ffmpegss = f'{ffmpegss}-vf scale=1280:720 '
     elif args.r1080:
         ffmpegss = f'{ffmpegss}-vf scale=1920:1080 '
-    if not args.h265:
+    if not args.h265 or args.h265 is None:
         ffmpegss = f'{ffmpegss}-c:v copy '
     else:
         x265parms = f'preset={pdict[args.speed]}:crf={args.level}:'
         x265parms = f'{x265parms}qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0'
         ffmpegss = f'{ffmpegss}-c:v libx265 -preset {args.speed} -x265-params {x265parms} '
     # AUDIO OPTIONS
-    if not args.aac:
-        fmpegss = f'{ffmpegss}-c:a copy '
+    if not args.aac or args.aac is None:
+        ffmpegss = f'{ffmpegss}-c:a copy '
     else:
-        fmpegss = f'{ffmpegss}-c:a aac -ac 2 '
+        ffmpegss = f'{ffmpegss}-c:a aac -ac 2 '
     if args.nosubs:
-        fmpegss = f'{ffmpegss}-ns '
-    print(f'{Fore.CYAN}FFmpeg Options: {Fore.YELLOW}{ffmpegss}{Fore.RESET}')
-    print(f'{Fore.CYAN}Replacing original video file: {Fore.YELLOW}{args.replace}{Fore.RESET}\n')
+        ffmpegss = f'{ffmpegss}-sn '
+    print(f'{GRN}Galaxymedia HEVC h265 video transcoder{RST}\n')
+    print(f'{CYN}Video: {YEL}{in_file}{RST}')
+    print(f'{CYN}FFmpeg Options: {YEL}{ffmpegss}{RST}')
+    print(f'{CYN}Replacing original video file: {YEL}{args.replace}{RST}\n')
+    print(f'{CYN}Video: {ctype} {CYN}Resolution: {resolution} {CYN}Duration: {duration} {CYN}Bitrate: {vbitrate} {CYN}Audio: {atype}\n')
     if args.replace:
         tresult = video_transcode(in_file, ffmpegss, console=True)
     else:
         tresult = video_transcode(in_file, ffmpegss, norep=True, console=True)
     if tresult:
-        print(f'{Fore.GREEN}Transcode Successful. {Fore.CYAN}[{Fore.YELLOW}{file_name(in_file)}{Fore.CYAN}]{Fore.RESET}\n')
+        print(f'{GRN}Transcode Successful. {CYN}[{YEL}{file_name(in_file)}{CYN}]{RST}\n')
     else:
-        print(f'{Fore.RED}Transcode Warnings/Errors. {Fore.CYAN}[{Fore.YELLOW}{file_name(in_file)}{Fore.CYAN}]{Fore.RESET}\n')
-
+        print(f'{RED}Transcode Warnings/Errors. {CYN}[{YEL}{file_name(in_file)}{CYN}]{RST}\n')
 
 if __name__ == '__main__':
     main()

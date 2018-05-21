@@ -56,6 +56,7 @@ def video_transcode(in_file, ffmpeg_options, norep=False, console=False):
         exit(1)
     log.debug(f'File copy complete {in_file} > {new_trans_file}')
     post_trans_file = f'{trans_dir}/{file_name_noext(new_trans_file)}.trans.mp4'
+    #ffmpeg_options = f'-loglevel info -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     ffmpeg_options = f'-v quiet -stats -loglevel fatal -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options))
     log.debug(f'Starting transcode on video file [{file_name(new_trans_file)}]')

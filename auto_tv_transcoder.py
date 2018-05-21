@@ -75,8 +75,7 @@ def main():
                 if int(vinfo[f'stream{stmn}']["width"]) > 1290:
                     ffmpeg_opstring = ffmpeg_opstring + '-vf scale=1280:720 '
                     ffmpeg_opstring = ffmpeg_opstring + f'-sn -c:v libx265 -preset ultrafast -x265-params \
-                    preset=0:crf=20:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 \
-                    -c:a aac -ac 2'
+                    preset=0:crf=22:qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0 -c:a aac -ac 2'
 
         video_transcode(vid, ffmpeg_opstring)
     log.info('Galaxymedia TV Transcoder script complete.')
