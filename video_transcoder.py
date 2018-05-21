@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(prog=__progname__, description=__description__,
                                  formatter_class=argparse.RawTextHelpFormatter)
 parser.add_argument('--version', action='version', version='%(prog)s {}'.format(__version__))
 logging_group = parser.add_mutually_exclusive_group(required=False)
-logging_group.add_argument('-q', '--quiet', action='store_false', help='supress normal console output')
+logging_group.add_argument('-q', '--quiet', action='store_true', help='supress normal console output')
 logging_group.add_argument('--debug', action='store_true', help='Debug mode logging to console')
 parser.add_argument('-r', '--replace', action='store_true', help='Replace original video file')
 parser.add_argument('video_file', action='store', help='Video file to transcode')
