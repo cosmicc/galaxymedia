@@ -8,8 +8,6 @@ import logging
 import argparse
 from datetime import datetime, timedelta
 
-import daemon
-
 from modules.galaxymediamod import *
 import modules.loadconfig as cfg
 import modules.processlock as processlock
@@ -83,5 +81,4 @@ def main():
     log.info('Galaxymedia TV Transcoder script complete.')
 
 if __name__ == '__main__':
-    with daemon.DaemonContext():
-        main()
+    main()

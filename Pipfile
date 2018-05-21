@@ -15,6 +15,7 @@ wakeonlan = "*"
 GitPython = "*"
 configparser = "*"
 pathlib = "*"
+python-daemon = "*"
 
 [dev-packages]
 pytest = "*"
