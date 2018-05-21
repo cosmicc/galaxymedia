@@ -8,6 +8,8 @@ import logging
 import argparse
 from datetime import datetime, timedelta
 
+import daemon
+
 from modules.galaxymediamod import *
 import modules.loadconfig as cfg
 import modules.processlock as processlock
@@ -80,6 +82,6 @@ def main():
         video_transcode(vid, ffmpeg_opstring)
     log.info('Galaxymedia TV Transcoder script complete.')
 
-
 if __name__ == '__main__':
-    main()
+    with daemon.DaemonContext():
+        main()
