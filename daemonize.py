@@ -33,7 +33,7 @@ def main():
     if args.high:
         subprocess.Popen(['nohup','nice','-n-1',f'{pscript}','>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
     elif args.low:
-        subprocess.Popen(['nohup','"nice','-n15',f'{pscript}','>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
+        subprocess.Popen(['nohup','nice','-n15',f'{pscript}','>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
     else:
         subprocess.Popen(['nohup',pscript,'>/dev/null','2>&1','&'], stdout=subprocess.PIPE)
     exit(0)
