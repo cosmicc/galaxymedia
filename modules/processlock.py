@@ -1,5 +1,3 @@
-#!/usr/bin/python3
-
 import os
 import sys
 import time
@@ -56,18 +54,14 @@ def lock():
 def unlock():
     fcntl.flock(lock_handle, fcntl.LOCK_UN)
     lock_handle.close()
-    # if os.path.isfile(lockfile):
-    #    os.remove(lockfile)
+    if os.path.isfile(lockfile):
+        os.remove(lockfile)
 
-if os.access('/run', os.W_OK) and os.path.isdir('/run'):
-    lpath = '/run'
-elif os.access('/var/tmp', os.W_OK) and os.path.isdir('/var/tmp'):
-    lpath = '/var/tmp'
-elif os.access('/tmp', os.W_OK) and os.path.isdir('/tmp'):
+if os.access('/tmp', os.W_OK) and os.path.isdir('/tmp'):
     lpath = '/tmp'
 else:
     log.critical('Cannot find a valid place to put the lockfile. Exiting')
     exit(1)
 
-lockfile = '{}/{}.lock'.format(lpath, cleanName(sys.argv[0]))
+lockfile = f'{lpath}/{cleanName(sys.argv[0])}.lock'
 lock_handle = open(lockfile, 'w')

@@ -330,7 +330,7 @@ def remote_cmd(server, username, password, cmd):
     try:
         ssh.login(server, username, password)
     except pxssh.ExceptionPexpect as e:
-        print('Failed to connect to remote server with SSH')
+        print('Failed to connect to remote server with SSH\n{}'.format(e))
         return False
     else:
         print('SSH connected to remote server [{}]'.format('server'))
