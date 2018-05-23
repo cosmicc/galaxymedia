@@ -32,7 +32,7 @@ logging_group = parser.add_mutually_exclusive_group(required=False)
 logging_group.add_argument('-q', '--quiet', action='store_true', help='supress normal console output')
 logging_group.add_argument('--debug', action='store_true', help='Debug mode logging to console')
 parser.add_argument('-r', '--replace', action='store_true', help='Replace original video file')
-parser.add_argument('video_file', action='store', help='Video file to transcode')
+parser.add_argument('video_file', action='store', help='Video file or directory to transcode')
 video_group = parser.add_argument_group('Video Options')
 video_group.add_argument('-h265', action='store_true', help='Convert video to HEVC h265')
 video_group.add_argument('-2pass', action='store_true', help='Use 2 Pass h265 encoding (1 Pass default)')
@@ -71,8 +71,8 @@ if args.logfile is not None:
     log.addHandler(log_fileh)
     log_fileh.setFormatter(log_format)
 
-pdict = {'ultrafast': 0, 'superfast': 1, 'veryfast': 2, 'faster': 3, 'fast': 4, 'medium': 5, \
-              'slow': 6, 'slower': 7, 'veryslow': 8}
+#pdict = {'ultrafast': 0, 'superfast': 1, 'veryfast': 2, 'faster': 3, 'fast': 4, 'medium': 5, \
+#         'slow': 6, 'slower': 7, 'veryslow': 8}
 
 YEL = Fore.YELLOW
 CYN = Fore.CYAN
@@ -85,6 +85,14 @@ RST = Fore.RESET
 
 def main():
     processlock.lock()
+    if args.video_file == '.' or os.path.isdir(args.video_file):
+        vdir = os.path.abspath(args.video_file)
+        for vfile in os.listdir(vdir):
+            proc_vid(vfile)
+    else:
+        proc_vid(args.video_file)
+
+def proc_vid(in_file):
     in_file = os.path.abspath(args.video_file)
     vinfo = video_info(in_file)
     duration = f'{YEL}{vinfo["duration"]}{RST}'
@@ -133,7 +141,7 @@ def main():
     if not args.h265 or args.h265 is None:
         ffmpegss = f'{ffmpegss}-c:v copy '
     else:
-        x265parms = f'preset={pdict[args.speed]}:crf={args.level}:'
+        x265parms = f'crf={args.level}:'
         x265parms = f'{x265parms}qcomp=0.8:aq-mode=1:aq_strength=1.0:qg-size=16:psy-rd=0.7:psy-rdoq=5.0:rdoq-level=1:merange=44:log-level=0'
         ffmpegss = f'{ffmpegss}-c:v libx265 -preset {args.speed} -x265-params {x265parms} '
     # AUDIO OPTIONS
@@ -153,10 +161,11 @@ def main():
     else:
         tresult = video_transcode(in_file, ffmpegss, norep=True, console=True)
     if tresult:
+        log.info(f'Transcode Successful. {file_name(in_file)}\n')
         print(f'{GRN}Transcode Successful. {CYN}[{YEL}{file_name(in_file)}{CYN}]{RST}\n')
     else:
+        log.info(f'Transcode Warnings/Errors. {file_name(in_file)}\n')
         print(f'{RED}Transcode Warnings/Errors. {CYN}[{YEL}{file_name(in_file)}{CYN}]{RST}\n')
 
 if __name__ == '__main__':
-    
     main()
