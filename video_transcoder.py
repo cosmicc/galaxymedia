@@ -95,14 +95,15 @@ def main():
                 if not is_trans(videofile):
                     transvids.append(videofile)
                     numvideos += 1
-        print(f'{CYN}Processing {YEL}{numvideos}{CYN} videos in directory mode for [{YEL}{vdir}{CYN}]{RST}')
+        videosleft = numvideos
         for vfile_ in transvids:
+            print(f'{CYN}Processing video {YEL}{videosleft}{CYN} of {YEL}{numvideos}{CYN} in directory mode for [{YEL}{vdir}{CYN}]{RST}\n')
             proc_vid(vfile_)
-
+            videosleft -= 1 
     else:
-        print(f'{CYN}Processing {YEL}1{CYN} video in single file mode for [{YEL}{os.path.abspath(args.video_file)}{CYN}]{RST}')
+        print(f'{CYN}Processing {YEL}1{CYN} video in single file mode for [{YEL}{os.path.abspath(args.video_file)}{CYN}]{RST}\n')
         proc_vid(os.path.abspath(args.video_file))
-    print('All Transcoding complete!')
+    print('{GRN}All Transcoding jobs complete!{RST}')
 
 
 def proc_vid(in_file):
@@ -134,8 +135,8 @@ def proc_vid(in_file):
         exit(1)
     # check to see if anything to do:
     if not args.h265 and not args.aac and not args.nosubs:
-        log.error(f'No arguments. Nothing to do to video file. Exiting. [{in_file}]')
-        print(f'No arguments. Nothing to do to video file. Exiting. [{in_file}]')
+        log.error(f'No arguments. Nothing to do to video file(s). Exiting. [{in_file}]')
+        print(f'No arguments. Nothing to do to video file(s). Exiting. [{in_file}]')
         exit(0)
     if not video_isinteg(in_file):
         log.error(f'Video file failed integrity check. Exiting. [{in_file}]')
@@ -149,7 +150,7 @@ def proc_vid(in_file):
         ffmpegss = f'-nostats -hide_banner '
     else:
         ffmpegss = ''
-    # VIDEO OPTIONS
+    # VIDEO OPTIONS 
     if args.r720:
         ffmpegss = f'{ffmpegss}-vf scale=1280:720 '
     elif args.r1080:
@@ -171,7 +172,7 @@ def proc_vid(in_file):
     print(f'{CYN}Video: {YEL}{in_file}{RST}')
     print(f'{CYN}FFmpeg Options: {YEL}{ffmpegss}{RST}')
     print(f'{CYN}Replacing original video file: {YEL}{args.replace}{RST}\n')
-    print(f'{CYN}Video: {ctype} {CYN}Resolution: {resolution} {CYN}Duration: {duration} {CYN}Bitrate: {vbitrate} {CYN}Audio: {atype}\n')
+    print(f'{CYN}Size: {YEL}{format_size(os.path.getsize(in_file))}{CYN} Video: {ctype} {CYN}Resolution: {resolution} {CYN}Duration: {duration} {CYN}Bitrate: {vbitrate} {CYN}Audio: {atype}\n')
     if args.replace:
         tresult = video_transcode(in_file, ffmpegss, console=True)
     else:
