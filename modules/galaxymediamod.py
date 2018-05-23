@@ -19,6 +19,7 @@ import ffmpy
 import publicsuffix
 from pexpect import pxssh
 from wakeonlan import send_magic_packet as wol
+from colorama import Fore, Back, Style
 
 import modules.loadconfig as cfg
 from modules.pushover import Client

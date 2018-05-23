@@ -86,14 +86,26 @@ RST = Fore.RESET
 def main():
     processlock.lock()
     if args.video_file == '.' or os.path.isdir(args.video_file):
+        transvids = []
+        numvideos = 0
         vdir = os.path.abspath(args.video_file)
-        for vfile in os.listdir(vdir):
-            proc_vid(vfile)
+        for (root, dirs, files) in os.walk(vdir):
+            for file_ in files:
+                videofile = os.path.join(root, file_)
+                if not is_trans(videofile):
+                    transvids.append(videofile)
+                    numvideos += 1
+        print(f'{CYN}Processing {YEL}{numvideos}{CYN} videos in directory mode for [{YEL}{vdir}{CYN}]{RST}')
+        for vfile_ in transvids:
+            proc_vid(vfile_)
+
     else:
-        proc_vid(args.video_file)
+        print(f'{CYN}Processing {YEL}1{CYN} video in single file mode for [{YEL}{os.path.abspath(args.video_file)}{CYN}]{RST}')
+        proc_vid(os.path.abspath(args.video_file))
+    print('All Transcoding complete!')
+
 
 def proc_vid(in_file):
-    in_file = os.path.abspath(args.video_file)
     vinfo = video_info(in_file)
     duration = f'{YEL}{vinfo["duration"]}{RST}'
     vbitrate = f'{YEL}{format_size(int(vinfo["bit_rate"]))}{RST}'
@@ -155,7 +167,7 @@ def proc_vid(in_file):
         ffmpegss = f'{ffmpegss}-c:a aac -ac 2 '
     if args.nosubs:
         ffmpegss = f'{ffmpegss}-sn '
-    print(f'{GRN}Galaxymedia HEVC h265 video transcoder{RST}\n')
+    #print(f'{GRN}Galaxymedia HEVC h265 video transcoder{RST}\n')
     print(f'{CYN}Video: {YEL}{in_file}{RST}')
     print(f'{CYN}FFmpeg Options: {YEL}{ffmpegss}{RST}')
     print(f'{CYN}Replacing original video file: {YEL}{args.replace}{RST}\n')
