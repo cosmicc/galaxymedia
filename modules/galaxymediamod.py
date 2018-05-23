@@ -9,6 +9,7 @@ import stat
 import subprocess
 import logging
 import json
+import time
 from urllib.request import urlopen
 from urllib.parse import urlparse
 from datetime import datetime
@@ -326,27 +327,54 @@ def require_root():
 
 
 def remote_cmd(server, username, password, cmd):
-    ssh = pxssh.pxssh()
-    try:
-        ssh.login(server, username, password)
-    except pxssh.ExceptionPexpect as e:
-        print('Failed to connect to remote server with SSH\n{}'.format(e))
-        return False
-    else:
-        print('SSH connected to remote server [{}]'.format('server'))
+    def gprompt():
+        log.debug('Waiting for command prompt from remote ssh host')
+        time.sleep(1)
+        try:
+            ssh.prompt()
+        except:
+            log.warning('failed to get command prompt from remote ssh host')
+            failed = True
+    connected = False
+    for a in range(1, 4):
+        ssh = pxssh.pxssh(options={"StrictHostKeyChecking": "no", "UserKnownHostsFile": "/dev/null"})
+        time.sleep(2)
+        try:
+            ssh.login(server, username, password)
+        except pxssh.ExceptionPexpect as e:
+            log.warning('Try #{} Failed to connect to remote server with SSH\n{}'.format(a,e))
+        else:
+             log.debug('SSH connected to remote server [{}]'.format(server))
+             connected = True
+             break
+    if connected:
+        failed = False
+        gprompt()
+        log.debug('Executing remote ssh command [{}]'.format(cmd))
         try:
             ssh.sendline(cmd)
-            ssh.prompt()
-            ssh.sendline('echo $?')
-            ssh.prompt()
-            splitres = ssh.before.decode().split('\r\n')
-            result = splitres[1]
         except:
-            print('SSH remote command execution failed')
+            log.warning('failed sending remote ssh command [{}]'.format(cmd))
+            failed = True
+        gprompt()
+        log.debug('Retrieving exit code from command')
+        try:
+            ssh.sendline('echo $?')
+        except:
+            log.warning('failed retreiving exit code from command')
+            failed = True
+        gprompt()
+        splitres = ssh.before.decode().split('\r\n')
+        result = splitres[1]
+        if failed:
+            log.error('SSH remote command [{}] execution failed on host [{}]'.format(cmd,server))
             return False
         else:
-            print('SSH remote command executed successfully')
-            return result
+            log.info('SSH remote command [{}] executed successfully on host [{}]'.format(cmd,server))
+            return True, result
+    else:
+        log.error('Cannot connect to server [{}] after 3 retries'.format(server))
+        return False
 
 def wakeup(macaddr):
     wol(macaddr)
