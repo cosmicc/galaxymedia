@@ -128,7 +128,11 @@ def proc_vid(in_file):
     if not video_isinteg(in_file):
         log.error(f'Video file failed integrity check. Exiting. [{in_file}]')
         print(f'Video file failed integrity check. Exiting. [{in_file}]')
-        exit(2)
+        exit(2)  # DO SOMETHING INSTEAD OF JUST EXITING
+    if is_trans(in_file):
+        log.warning(f'Video file is already marked transcoded. [{in_file}]')
+        print(f'Video file is already marked transcoded. [{in_file}]')
+        return
     if args.quiet:
         ffmpegss = f'-nostats -hide_banner '
     else:
