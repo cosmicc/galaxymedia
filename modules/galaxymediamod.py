@@ -59,7 +59,7 @@ def video_transcode(in_file, ffmpeg_options, norep=False, console=False):
     if console:
         ffmpeg_options = f'-stats -loglevel warning -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     else:
-        ffmpeg_options = f'-v quiet -loglevel fatal -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
+        ffmpeg_options = f'-v quiet -nostats -loglevel fatal -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     ffmpeg = ffmpy.FFmpeg(global_options=(ffmpeg_options))
     log.debug(f'Starting transcode on video file [{file_name(new_trans_file)}]')
     start_time = datetime.now()
