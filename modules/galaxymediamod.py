@@ -57,7 +57,8 @@ def video_transcode(in_file, ffmpeg_options, norep=False, console=False):
         log.error(f'Error copying file {in_file} to local trans dir {trans_dir}')
         exit(1)
     log.debug(f'File copy complete {in_file} > {new_trans_file}')
-    post_trans_file = f'{trans_dir}/{file_name_noext(new_trans_file)}.trans.mp4'
+    post_trans_file = f'{trans_dir}/{file_name_noext(new_trans_file)}.mp4'
+    post_trans_file = set_trans(post_trans_file)
     if console:
         ffmpeg_options = f'-stats -loglevel warning -i "{new_trans_file}" ' + ffmpeg_options + f' "{post_trans_file}"'
     else:
@@ -93,6 +94,15 @@ def video_transcode(in_file, ffmpeg_options, norep=False, console=False):
                 os.remove(new_trans_file)
             if os.path.isfile(post_trans_file):
                 os.remove(post_trans_file)
+            log.debug(f'Marking original video file as not transcodable')
+            try:
+                os.rename(in_file,set_ntrans(in_file))
+            except:
+                log.error(f'Error renaming file [{in_file}]')
+                if console:
+                    print(f'Error renaming file [{in_file}]')
+            else:
+                log.debug(f'File renamed [{in_file}] to [{set_ntrans(in_file)}]')
             return False
         log.debug(f'Replacing original video with newly transcoded video [{file_name(new_trans_file)}]')
         try:
@@ -271,10 +281,10 @@ def file_name_noext(in_file):
     filename = in_file_split[-1]
     filename_split = filename.split('.')
     if len(filename_split) == 1:
-        log.debug(f'Function file_nameonly returned [{filename_split[0]}] for file {in_file}')
+        #log.debug(f'Function file_nameonly returned [{filename_split[0]}] for file {in_file}')
         return filename_split[0]
     filename_split = filename_split[:-1]
-    log.debug(f'Function file_nameonly returned [{"".join(filename_split)}] for file {in_file}')
+    #log.debug(f'Function file_nameonly returned [{"".join(filename_split)}] for file {in_file}')
     return ''.join(filename_split)
 
 
@@ -297,6 +307,32 @@ def file_ext(in_file):
     else:
         log.debug(f'Function file_ext returned [{filename_split[-1]}] for file {in_file}')
         return filename_split[-1]
+
+
+def set_ntrans(in_file):
+    return set_trans(in_file,ntrans=True)
+
+
+def set_trans(in_file,ntrans=False):
+    in_file_split = in_file.split('/')
+    filename = in_file_split[-1]
+    del in_file_split[-1]
+    in_dir = '/'.join(in_file_split)
+    if in_dir != '':
+        in_dir = f'{in_dir}/'
+    filename_split = filename.split('.')
+    new_filename_split = []
+    for elem in filename_split:
+        if elem != 'trans' and elem != 'ntrans':
+            new_filename_split.append(elem)
+    if ntrans:
+        trans_insert = 'ntrans'
+    else:
+        trans_insert = 'trans'
+    new_filename_split.insert(len(new_filename_split)-1,trans_insert)
+    newname = '.'.join(new_filename_split)
+    return f'{in_dir}{newname}'
+
 
 def is_trans(in_file):
     in_file_split = in_file.split('/')

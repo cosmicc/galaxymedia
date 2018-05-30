@@ -4,4 +4,4 @@ import sys
 import os
 from modules.galaxymediamod import *
 
-print(remote_cmd('astroid1', 'ip', 'Ifa6wasa9', 'touch WOW'))
+print(set_ntrans(sys.argv[1]))
