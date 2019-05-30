@@ -55,7 +55,7 @@ def main():
         for file_ in files:
             videofile = os.path.join(root, file_)
             filetime = datetime.fromtimestamp(os.path.getctime(videofile))
-            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 3000000000 \
+            if not is_trans(videofile) and not is_tv_excluded(videofile) and os.path.getsize(videofile) > 300000000 \
             and filetime < days_ago:
                 transvids.append(videofile)
                 numvids += 1
